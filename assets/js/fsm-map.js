@@ -67,6 +67,7 @@
         this.config = config;
         this.markers = [];
         this.allData = [];
+        this._userChangedGeo = false;
         this.map = null;
         this.cluster = null;
         this.wrapper = document.getElementById(mapId + '-wrapper');
@@ -520,6 +521,7 @@
         // getFilterParams had already read the stale value.
         if (acadSelect) {
             acadSelect.addEventListener('change', function () {
+                self._userChangedGeo = true;
                 if (acadSelect.value !== 'all' && deptSelect) {
                     deptSelect.value = 'all';
                 }
@@ -528,6 +530,7 @@
         }
         if (deptSelect) {
             deptSelect.addEventListener('change', function () {
+                self._userChangedGeo = true;
                 if (deptSelect.value !== 'all' && acadSelect) {
                     acadSelect.value = 'all';
                 }
@@ -585,9 +588,11 @@
         if (acadVal !== 'all') deptVal = 'all';
         if (deptVal !== 'all') acadVal = 'all';
 
-        // Apply config defaults only when *both* dropdowns are still at "all"
-        // (i.e. the user has not actively chosen a geographic filter).
-        if (deptVal === 'all' && acadVal === 'all') {
+        // Apply config defaults only on the initial load (before the user has
+        // interacted with the geographic dropdowns). Once the user actively
+        // selects "tous", _userChangedGeo is true and we skip the fallback
+        // so that all schools are loaded as expected.
+        if (!this._userChangedGeo && deptVal === 'all' && acadVal === 'all') {
             if (this.config.departement && this.config.departement !== 'all') {
                 deptVal = this.config.departement;
             } else if (this.config.academie && this.config.academie !== 'all') {

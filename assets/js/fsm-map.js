@@ -90,7 +90,21 @@
             zoom: this.config.zoom,
             maxZoom: this.config.maxZoom,
             zoomControl: true,
-            scrollWheelZoom: true,
+            scrollWheelZoom: false,
+        });
+
+        // Enable scroll-wheel zoom only while Ctrl is held down.
+        var mapEl = document.getElementById(this.mapId);
+        var leafletMap = this.map;
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Control') leafletMap.scrollWheelZoom.enable();
+        });
+        document.addEventListener('keyup', function (e) {
+            if (e.key === 'Control') leafletMap.scrollWheelZoom.disable();
+        });
+        // Also disable when the window loses focus (user Alt-Tabs, etc.).
+        window.addEventListener('blur', function () {
+            leafletMap.scrollWheelZoom.disable();
         });
 
         // Tile layer.

@@ -153,7 +153,7 @@ function fsm_render_shortcode($atts = array())
             'show_filter_statut'    => 'true',
             'show_filter_types'     => 'true',
             'show_filter_ep'        => 'true',
-            'cluster'               => 'true',
+            'cluster'               => 'false',
             'max_zoom'              => '18',
             'tile_url'              => '',
         ),
@@ -475,7 +475,7 @@ function fsm_register_block()
             ),
             'cluster' => array(
                 'type'    => 'string',
-                'default' => 'true',
+                'default' => 'false',
             ),
         ),
     ));

@@ -63,7 +63,7 @@
             show_filter_statut: { type: 'string', default: 'true' },
             show_filter_types: { type: 'string', default: 'true' },
             show_filter_ep: { type: 'string', default: 'true' },
-            cluster: { type: 'string', default: 'true' },
+            cluster: { type: 'string', default: 'false' },
         },
 
         edit: function (props) {

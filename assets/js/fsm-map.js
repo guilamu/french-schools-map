@@ -105,8 +105,9 @@
         // Legend.
         this.addLegend();
 
-        // Cluster group.
-        if (this.config.cluster && L.markerClusterGroup) {
+        // Cluster group — always created so it can serve as a safety net
+        // when the result set is large, even if config.cluster is false.
+        if (L.markerClusterGroup) {
             this.cluster = L.markerClusterGroup({
                 maxClusterRadius: 50,
                 spiderfyOnMaxZoom: true,
@@ -116,7 +117,14 @@
                 chunkDelay: 10,
                 disableClusteringAtZoom: 18,
             });
-            this.map.addLayer(this.cluster);
+            // Only add to map now if clustering is on by config; otherwise
+            // renderMarkers adds/removes it dynamically based on data size.
+            if (this.config.cluster) {
+                this.map.addLayer(this.cluster);
+                this._clusterOnMap = true;
+            } else {
+                this._clusterOnMap = false;
+            }
         }
 
         // Bind filters.
@@ -261,10 +269,25 @@
     FSM_Map.prototype.renderMarkers = function (data, fitView, gen) {
         var self = this;
 
-        // Clear existing.
+        // Decide whether to use the cluster layer for this render.
+        // Force clustering whenever data.length > 1500, regardless of config,
+        // to prevent the browser from rendering 60k+ individual DOM nodes.
+        var CLUSTER_THRESHOLD = 1500;
+        var needsCluster = this.config.cluster || data.length > CLUSTER_THRESHOLD;
+
+        // Dynamically add or remove the cluster layer from the map.
         if (this.cluster) {
             this.cluster.clearLayers();
-        } else {
+            if (needsCluster && !this._clusterOnMap) {
+                this.map.addLayer(this.cluster);
+                this._clusterOnMap = true;
+            } else if (!needsCluster && this._clusterOnMap) {
+                this.map.removeLayer(this.cluster);
+                this._clusterOnMap = false;
+            }
+        }
+        // When not using cluster, remove individually tracked markers.
+        if (!needsCluster) {
             this.markers.forEach(function (m) { self.map.removeLayer(m); });
         }
         this.markers = [];
@@ -325,7 +348,7 @@
 
         self.markers = markersArray;
 
-        if (self.cluster) {
+        if (needsCluster && self.cluster) {
             self.cluster.addLayers(markersArray);
         } else {
             markersArray.forEach(function (m) { m.addTo(self.map); });

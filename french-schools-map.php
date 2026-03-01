@@ -165,8 +165,12 @@ function fsm_render_shortcode($atts = array())
     // This ensures that a change made in the plugin Settings page takes
     // effect immediately on every page/post, without requiring the editor
     // to re-open and re-save each Gutenberg block.
-    $global_dept = get_option('fsm_default_departement', 'all');
-    $global_acad = get_option('fsm_default_academie', 'all');
+    $global_dept   = get_option('fsm_default_departement', 'all');
+    $global_acad   = get_option('fsm_default_academie',    'all');
+    $global_types  = get_option('fsm_default_types',       'all');
+    $global_statut = get_option('fsm_default_statut',      'all');
+    $global_ep     = get_option('fsm_default_ep',          'all');
+
     if ($global_dept !== 'all') {
         $atts['departement'] = $global_dept;
         $atts['academie']    = 'all';
@@ -174,6 +178,9 @@ function fsm_render_shortcode($atts = array())
         $atts['academie']    = $global_acad;
         $atts['departement'] = 'all';
     }
+    if ($global_types  !== 'all') $atts['types']                = $global_types;
+    if ($global_statut !== 'all') $atts['statut']               = $global_statut;
+    if ($global_ep     !== 'all') $atts['education_prioritaire'] = $global_ep;
 
     // Enqueue frontend assets.
     fsm_enqueue_frontend_assets();

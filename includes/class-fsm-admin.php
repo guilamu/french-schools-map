@@ -81,16 +81,12 @@ class FSM_Admin
      */
     public static function register_settings()
     {
-        register_setting('fsm_settings', 'fsm_default_departement', array(
-            'type'              => 'string',
-            'sanitize_callback' => 'sanitize_text_field',
-            'default'           => 'all',
-        ));
-        register_setting('fsm_settings', 'fsm_default_academie', array(
-            'type'              => 'string',
-            'sanitize_callback' => 'sanitize_text_field',
-            'default'           => 'all',
-        ));
+        $text_field = array('type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => 'all');
+        register_setting('fsm_settings', 'fsm_default_departement', $text_field);
+        register_setting('fsm_settings', 'fsm_default_academie',    $text_field);
+        register_setting('fsm_settings', 'fsm_default_types',       $text_field);
+        register_setting('fsm_settings', 'fsm_default_statut',      $text_field);
+        register_setting('fsm_settings', 'fsm_default_ep',          $text_field);
     }
 
     /**
@@ -100,8 +96,11 @@ class FSM_Admin
     {
         // Handle settings save.
         if (isset($_POST['fsm_save_settings']) && check_admin_referer('fsm_settings_nonce')) {
-            $dept = sanitize_text_field($_POST['fsm_default_departement'] ?? 'all');
-            $acad = sanitize_text_field($_POST['fsm_default_academie'] ?? 'all');
+            $dept   = sanitize_text_field($_POST['fsm_default_departement'] ?? 'all');
+            $acad   = sanitize_text_field($_POST['fsm_default_academie']    ?? 'all');
+            $types  = sanitize_text_field($_POST['fsm_default_types']       ?? 'all');
+            $statut = sanitize_text_field($_POST['fsm_default_statut']      ?? 'all');
+            $ep     = sanitize_text_field($_POST['fsm_default_ep']          ?? 'all');
 
             // Mutual exclusion: if académie is set, clear département and vice-versa.
             if ($acad !== 'all') {
@@ -109,15 +108,21 @@ class FSM_Admin
             }
 
             update_option('fsm_default_departement', $dept);
-            update_option('fsm_default_academie', $acad);
+            update_option('fsm_default_academie',    $acad);
+            update_option('fsm_default_types',       $types);
+            update_option('fsm_default_statut',      $statut);
+            update_option('fsm_default_ep',          $ep);
 
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Paramètres enregistrés.', 'french-schools-map') . '</p></div>';
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved.', 'french-schools-map') . '</p></div>';
         }
 
         $status       = FSM_Local_DB::get_status();
         $next         = wp_next_scheduled(FSM_Local_DB::CRON_HOOK);
         $saved_dept   = get_option('fsm_default_departement', 'all');
-        $saved_acad   = get_option('fsm_default_academie', 'all');
+        $saved_acad   = get_option('fsm_default_academie',    'all');
+        $saved_types  = get_option('fsm_default_types',       'all');
+        $saved_statut = get_option('fsm_default_statut',      'all');
+        $saved_ep     = get_option('fsm_default_ep',          'all');
         $academies    = FSM_Academies::get_names();
         $departments  = FSM_Local_DB::has_data() ? FSM_Local_DB::get_departments() : array();
 ?>
@@ -193,60 +198,91 @@ class FSM_Admin
 
             <!-- Default filters settings -->
             <div class="fsm-card">
-                <h2><?php esc_html_e('Paramètres par défaut', 'french-schools-map'); ?></h2>
-                <p class="description"><?php esc_html_e('Définissez le filtre géographique par défaut. Choisissez soit une académie, soit un département (mutuellement exclusifs). Ce réglage s\'applique quand le shortcode n\'a pas d\'attribut departement/academie.', 'french-schools-map'); ?></p>
+                <h2><?php esc_html_e('Default settings', 'french-schools-map'); ?></h2>
+                <p class="description"><?php esc_html_e('These values are used as defaults when the shortcode or block does not specify an attribute.', 'french-schools-map'); ?></p>
 
                 <form method="post">
                     <?php wp_nonce_field('fsm_settings_nonce'); ?>
-
                     <table class="form-table">
                         <tr>
-                            <th><label for="fsm_default_academie"><?php esc_html_e('Académie par défaut', 'french-schools-map'); ?></label></th>
+                            <th><label for="fsm_default_academie"><?php esc_html_e('Default academy', 'french-schools-map'); ?></label></th>
                             <td>
                                 <select name="fsm_default_academie" id="fsm_default_academie">
-                                    <option value="all"><?php esc_html_e('Toutes (pas de filtre)', 'french-schools-map'); ?></option>
+                                    <option value="all"><?php esc_html_e('All (no filter)', 'french-schools-map'); ?></option>
                                     <?php foreach ($academies as $acad) : ?>
                                         <option value="<?php echo esc_attr($acad); ?>" <?php selected($saved_acad, $acad); ?>><?php echo esc_html($acad); ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <p class="description"><?php esc_html_e('Si une académie est sélectionnée, elle regroupe automatiquement les départements correspondants.', 'french-schools-map'); ?></p>
+                                <p class="description"><?php esc_html_e('If an academy is selected, it automatically groups the corresponding departments.', 'french-schools-map'); ?></p>
                             </td>
                         </tr>
                         <tr>
-                            <th><label for="fsm_default_departement"><?php esc_html_e('Département par défaut', 'french-schools-map'); ?></label></th>
+                            <th><label for="fsm_default_departement"><?php esc_html_e('Default department', 'french-schools-map'); ?></label></th>
                             <td>
                                 <select name="fsm_default_departement" id="fsm_default_departement">
-                                    <option value="all"><?php esc_html_e('Tous (pas de filtre)', 'french-schools-map'); ?></option>
+                                    <option value="all"><?php esc_html_e('All (no filter)', 'french-schools-map'); ?></option>
                                     <?php foreach ($departments as $dept) : ?>
                                         <option value="<?php echo esc_attr($dept); ?>" <?php selected($saved_dept, $dept); ?>><?php echo esc_html($dept); ?></option>
                                     <?php endforeach; ?>
                                 </select>
-                                <p class="description"><?php esc_html_e('Le département a priorité sur l\'académie. Si un département est choisi, l\'académie est ignorée.', 'french-schools-map'); ?></p>
+                                <p class="description"><?php esc_html_e('The department takes priority over the academy. If a department is chosen, the academy is ignored.', 'french-schools-map'); ?></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="fsm_default_types"><?php esc_html_e('Default types', 'french-schools-map'); ?></label></th>
+                            <td>
+                                <select name="fsm_default_types" id="fsm_default_types">
+                                    <option value="all" <?php selected($saved_types, 'all'); ?>><?php esc_html_e('All (schools + middle + high)', 'french-schools-map'); ?></option>
+                                    <option value="Ecole" <?php selected($saved_types, 'Ecole'); ?>><?php esc_html_e('Schools only', 'french-schools-map'); ?></option>
+                                    <option value="Coll&#232;ge" <?php selected($saved_types, 'Coll&#232;ge'); ?>><?php esc_html_e('Middle schools only', 'french-schools-map'); ?></option>
+                                    <option value="Lyc&#233;e" <?php selected($saved_types, 'Lyc&#233;e'); ?>><?php esc_html_e('High schools only', 'french-schools-map'); ?></option>
+                                    <option value="Ecole,Coll&#232;ge" <?php selected($saved_types, 'Ecole,Coll&#232;ge'); ?>><?php esc_html_e('Schools + Middle schools', 'french-schools-map'); ?></option>
+                                    <option value="Coll&#232;ge,Lyc&#233;e" <?php selected($saved_types, 'Coll&#232;ge,Lyc&#233;e'); ?>><?php esc_html_e('Middle + High schools', 'french-schools-map'); ?></option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="fsm_default_statut"><?php esc_html_e('Default status', 'french-schools-map'); ?></label></th>
+                            <td>
+                                <select name="fsm_default_statut" id="fsm_default_statut">
+                                    <option value="all" <?php selected($saved_statut, 'all'); ?>><?php esc_html_e('All (public + private)', 'french-schools-map'); ?></option>
+                                    <option value="Public" <?php selected($saved_statut, 'Public'); ?>><?php esc_html_e('Public only', 'french-schools-map'); ?></option>
+                                    <option value="Priv&#233;" <?php selected($saved_statut, 'Priv&#233;'); ?>><?php esc_html_e('Private only', 'french-schools-map'); ?></option>
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="fsm_default_ep"><?php esc_html_e('Default priority education', 'french-schools-map'); ?></label></th>
+                            <td>
+                                <select name="fsm_default_ep" id="fsm_default_ep">
+                                    <option value="all" <?php selected($saved_ep, 'all'); ?>><?php esc_html_e('All', 'french-schools-map'); ?></option>
+                                    <option value="REP" <?php selected($saved_ep, 'REP'); ?>>REP</option>
+                                    <option value="REP+" <?php selected($saved_ep, 'REP+'); ?>>REP+</option>
+                                </select>
                             </td>
                         </tr>
                     </table>
-
+                    <script>
+                        (function() {
+                            var acad = document.getElementById('fsm_default_academie');
+                            var dept = document.getElementById('fsm_default_departement');
+                            if (!acad || !dept) return;
+                            acad.addEventListener('change', function() {
+                                if (acad.value !== 'all') dept.value = 'all';
+                            });
+                            dept.addEventListener('change', function() {
+                                if (dept.value !== 'all') acad.value = 'all';
+                            });
+                        })();
+                    </script>
                     <p>
                         <button type="submit" name="fsm_save_settings" class="button button-primary">
-                            <?php esc_html_e('Enregistrer les paramètres', 'french-schools-map'); ?>
+                            <?php esc_html_e('Save settings', 'french-schools-map'); ?>
                         </button>
                     </p>
                 </form>
-
-                <script>
-                    (function() {
-                        var acad = document.getElementById('fsm_default_academie');
-                        var dept = document.getElementById('fsm_default_departement');
-                        if (!acad || !dept) return;
-                        acad.addEventListener('change', function() {
-                            if (acad.value !== 'all') dept.value = 'all';
-                        });
-                        dept.addEventListener('change', function() {
-                            if (dept.value !== 'all') acad.value = 'all';
-                        });
-                    })();
-                </script>
             </div>
+
 
             <!-- Sync status -->
             <div class="fsm-card">

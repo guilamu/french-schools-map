@@ -1,0 +1,68 @@
+/**
+ * French Schools Map — Admin styles.
+ *
+ * @package French_Schools_Map
+ */
+
+.fsm-admin-wrap {
+    max-width: 900px;
+}
+
+.fsm-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 4px;
+    padding: 20px 24px;
+    margin: 20px 0;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+}
+
+.fsm-card h2 {
+    margin-top: 0;
+    padding-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.fsm-card h3 {
+    margin-top: 20px;
+}
+
+.fsm-card code {
+    background: #f0f0f1;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.fsm-status-table th {
+    width: 200px;
+    padding: 10px 0;
+    font-weight: 600;
+}
+
+.fsm-status-table td {
+    padding: 10px 0;
+}
+
+.fsm-error {
+    color: #d63638;
+    font-weight: 600;
+}
+
+#fsm-sync-spinner.is-active {
+    visibility: visible;
+}
+
+#fsm-sync-message {
+    margin-left: 10px;
+    font-weight: 600;
+}
+
+#fsm-sync-message.success {
+    color: #00a32a;
+}
+
+#fsm-sync-message.error {
+    color: #d63638;
+}

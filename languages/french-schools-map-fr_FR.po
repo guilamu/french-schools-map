@@ -1,0 +1,351 @@
+# French (France) translation for French Schools Map.
+# Copyright (C) 2026 Guilamu
+# This file is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+# Guilamu <guilamu@github.com>, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: French Schools Map 1.0.0\n"
+"Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
+"POT-Creation-Date: 2026-03-01T10:32:00+01:00\n"
+"PO-Revision-Date: 2026-03-01 10:40+0100\n"
+"Last-Translator: Guilamu <guilamu@github.com>\n"
+"Language-Team: French (France)\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 3.4.4\n"
+"X-Domain: french-schools-map\n"
+
+#. Plugin Name of the plugin
+msgid "French Schools Map"
+msgstr "Carte des écoles françaises"
+
+#. Description of the plugin
+msgid ""
+"Carte interactive des établissements scolaires français basée sur "
+"OpenStreetMap et les données open data du Ministère de l'Éducation Nationale."
+msgstr ""
+"Carte interactive des établissements scolaires français basée sur "
+"OpenStreetMap et les données open data du Ministère de l'Éducation Nationale."
+
+#: french-schools-map.php
+msgid "Schools Map"
+msgstr "Carte des écoles"
+
+#: french-schools-map.php
+msgid "Once Monthly (FSM)"
+msgstr "Une fois par mois (FSM)"
+
+#: french-schools-map.php
+msgid "🐛 Report a Bug"
+msgstr "🐛 Signaler un bug"
+
+#: french-schools-map.php
+msgid "🐛 Report a Bug (install Bug Reporter)"
+msgstr "🐛 Signaler un bug (installer Bug Reporter)"
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "Legend"
+msgstr "Légende"
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "Loading…"
+msgstr "Chargement…"
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "Loading error."
+msgstr "Erreur de chargement."
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "More info…"
+msgstr "Plus d'infos…"
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "Error"
+msgstr "Erreur"
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "Directions"
+msgstr "Itinéraire"
+
+#: french-schools-map.php (fsmMapI18n)
+msgid "Exit fullscreen"
+msgstr "Quitter le plein écran"
+
+#: french-schools-map.php (fsmMapI18n) (shortcode HTML)
+msgid "Fullscreen"
+msgstr "Plein écran"
+
+#. translators: %1$s = number of schools shown, %2$s = total number
+#: french-schools-map.php (fsmMapI18n)
+msgid "%1$s school(s) shown out of %2$s"
+msgstr "%1$s établissement(s) affiché(s) sur %2$s"
+
+#: includes/class-fsm-admin.php
+msgid "Syncing…"
+msgstr "Synchronisation en cours…"
+
+#: includes/class-fsm-admin.php
+msgid "Sync completed successfully!"
+msgstr "Synchronisation terminée avec succès !"
+
+#: includes/class-fsm-admin.php
+msgid "An error occurred during sync."
+msgstr "Erreur lors de la synchronisation."
+
+#: includes/class-fsm-admin.php
+msgid "Start sync now? This may take several minutes."
+msgstr ""
+"Lancer la synchronisation maintenant ? Cela peut prendre plusieurs minutes."
+
+#: includes/class-fsm-admin.php
+msgid "Settings saved."
+msgstr "Paramètres enregistrés."
+
+#: includes/class-fsm-admin.php
+msgid "Interactive map of French schools."
+msgstr "Carte interactive des établissements scolaires français."
+
+#: includes/class-fsm-admin.php
+msgid "Usage"
+msgstr "Utilisation"
+
+#: includes/class-fsm-admin.php
+msgid "Add the map to a page or post with the shortcode:"
+msgstr "Ajoutez la carte dans une page ou un article avec le shortcode :"
+
+#: includes/class-fsm-admin.php
+msgid "Or use the \"French Schools Map\" block in the Gutenberg editor."
+msgstr "Ou utilisez le bloc « French Schools Map » dans l'éditeur Gutenberg."
+
+#: includes/class-fsm-admin.php
+msgid "Available attributes"
+msgstr "Attributs disponibles"
+
+#: includes/class-fsm-admin.php
+msgid "Attribute"
+msgstr "Attribut"
+
+#: includes/class-fsm-admin.php
+msgid "Default"
+msgstr "Défaut"
+
+#: includes/class-fsm-admin.php
+msgid "Description"
+msgstr "Description"
+
+#: includes/class-fsm-admin.php
+msgid "Map height"
+msgstr "Hauteur de la carte"
+
+#: includes/class-fsm-admin.php
+msgid "Initial zoom level"
+msgstr "Niveau de zoom initial"
+
+#: includes/class-fsm-admin.php
+msgid "Types: Ecole, Collège, Lycée (comma-separated)"
+msgstr "Types : Ecole, Collège, Lycée (séparés par des virgules)"
+
+#: includes/class-fsm-admin.php
+msgid "Department name to filter"
+msgstr "Nom du département à filtrer"
+
+#: includes/class-fsm-admin.php
+msgid "Academy name to filter"
+msgstr "Nom de l'académie à filtrer"
+
+#: includes/class-fsm-admin.php
+msgid "Public or Privé"
+msgstr "Public ou Privé"
+
+#: includes/class-fsm-admin.php
+msgid "Show filter panel"
+msgstr "Afficher le panneau de filtres"
+
+#: includes/class-fsm-admin.php
+msgid "Show search bar"
+msgstr "Afficher la barre de recherche"
+
+#: includes/class-fsm-admin.php
+msgid "Enable marker clustering"
+msgstr "Activer le clustering de marqueurs"
+
+#: includes/class-fsm-admin.php
+msgid "Default settings"
+msgstr "Paramètres par défaut"
+
+#: includes/class-fsm-admin.php
+msgid ""
+"Set the default geographic filter. Choose either an academy or a department "
+"(mutually exclusive). This setting applies when the shortcode has no "
+"departement/academie attribute."
+msgstr ""
+"Définissez le filtre géographique par défaut. Choisissez soit une académie, "
+"soit un département (mutuellement exclusifs). Ce réglage s'applique quand le "
+"shortcode n'a pas d'attribut departement/academie."
+
+#: includes/class-fsm-admin.php
+msgid "Default academy"
+msgstr "Académie par défaut"
+
+#: includes/class-fsm-admin.php
+msgid "All (no filter)"
+msgstr "Toutes (pas de filtre)"
+
+#: includes/class-fsm-admin.php
+msgid ""
+"If an academy is selected, it automatically groups the corresponding "
+"departments."
+msgstr ""
+"Si une académie est sélectionnée, elle regroupe automatiquement les "
+"départements correspondants."
+
+#: includes/class-fsm-admin.php
+msgid "Default department"
+msgstr "Département par défaut"
+
+#: includes/class-fsm-admin.php
+msgid ""
+"The department takes priority over the academy. If a department is chosen, "
+"the academy is ignored."
+msgstr ""
+"Le département a priorité sur l'académie. Si un département est choisi, "
+"l'académie est ignorée."
+
+#: includes/class-fsm-admin.php
+msgid "Save settings"
+msgstr "Enregistrer les paramètres"
+
+#: includes/class-fsm-admin.php
+msgid "Data synchronisation"
+msgstr "Synchronisation des données"
+
+#: includes/class-fsm-admin.php french-schools-map.php (shortcode HTML)
+msgid "Status"
+msgstr "Statut"
+
+#: includes/class-fsm-admin.php
+msgid "Last sync"
+msgstr "Dernière synchronisation"
+
+#: includes/class-fsm-admin.php
+msgid "Never"
+msgstr "Jamais"
+
+#: includes/class-fsm-admin.php
+msgid "Records"
+msgstr "Enregistrements"
+
+#: includes/class-fsm-admin.php
+msgid "Next sync"
+msgstr "Prochaine synchronisation"
+
+#: includes/class-fsm-admin.php
+msgid "Not scheduled"
+msgstr "Non planifiée"
+
+#: includes/class-fsm-admin.php
+msgid "Sync now"
+msgstr "Synchroniser maintenant"
+
+#: includes/class-fsm-admin.php
+msgid ""
+"The sync downloads the full school directory (~69,000 establishments) from "
+"the Open Data portal of the Ministry of National Education. This operation "
+"may take several minutes."
+msgstr ""
+"La synchronisation télécharge l'intégralité de l'annuaire (~69 000 "
+"établissements) depuis le portail Open Data du Ministère de l'Éducation "
+"Nationale. Cette opération peut prendre plusieurs minutes."
+
+#: includes/class-fsm-admin.php
+msgid "Idle"
+msgstr "En attente"
+
+#: includes/class-fsm-admin.php
+msgid "Running…"
+msgstr "En cours…"
+
+#: includes/class-fsm-admin.php
+msgid "Success"
+msgstr "Succès"
+
+#: includes/class-fsm-local-db.php
+msgid "A sync is already in progress."
+msgstr "Une synchronisation est déjà en cours."
+
+#: includes/class-fsm-local-db.php
+msgid "Cannot open CSV file."
+msgstr "Impossible d'ouvrir le fichier CSV."
+
+#: includes/class-fsm-local-db.php
+msgid "CSV has no header row."
+msgstr "Le fichier CSV n'a pas de ligne d'en-tête."
+
+#: includes/class-fsm-local-db.php
+msgid "Only %1$d records (minimum %2$d). Aborting."
+msgstr "Seulement %1$d enregistrements (minimum %2$d). Abandon."
+
+#: includes/class-fsm-local-db.php
+msgid "CSV missing required columns: %s"
+msgstr "Colonnes obligatoires manquantes dans le CSV : %s"
+
+#: includes/class-github-updater.php
+msgid "Unable to rename the update folder. Please retry or update manually."
+msgstr ""
+"Impossible de renommer le dossier de mise à jour. Veuillez réessayer ou "
+"mettre à jour manuellement."
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Search"
+msgstr "Rechercher"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Name or town…"
+msgstr "Nom ou ville…"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Academy"
+msgstr "Académie"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "All"
+msgstr "Tous"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Department"
+msgstr "Département"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Public"
+msgstr "Public"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Private"
+msgstr "Privé"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Types"
+msgstr "Types"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Schools"
+msgstr "Écoles"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Middle schools"
+msgstr "Collèges"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "High schools"
+msgstr "Lycées"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Priority education"
+msgstr "Éducation prioritaire"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Locate me"
+msgstr "Me localiser"

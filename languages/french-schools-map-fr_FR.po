@@ -4,10 +4,10 @@
 # Guilamu <guilamu@github.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.0.0\n"
+"Project-Id-Version: French Schools Map 1.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
 "POT-Creation-Date: 2026-03-01T10:32:00+01:00\n"
-"PO-Revision-Date: 2026-03-01 10:40+0100\n"
+"PO-Revision-Date: 2026-03-02 15:50+0100\n"
 "Last-Translator: Guilamu <guilamu@github.com>\n"
 "Language-Team: French (France)\n"
 "Language: fr_FR\n"

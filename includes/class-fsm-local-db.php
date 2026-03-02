@@ -404,6 +404,11 @@ class FSM_Local_DB
             $values[]        = $filters['ep'];
         }
 
+        if (!empty($filters['circonscription']) && $filters['circonscription'] !== 'all') {
+            $where_clauses[] = 'nom_circonscription = %s';
+            $values[]        = $filters['circonscription'];
+        }
+
         if (!empty($filters['search'])) {
             $like            = '%' . $wpdb->esc_like($filters['search']) . '%';
             $where_clauses[] = '(nom_etablissement LIKE %s OR nom_commune LIKE %s)';
@@ -508,6 +513,11 @@ class FSM_Local_DB
             $values[]        = $filters['ep'];
         }
 
+        if (!empty($filters['circonscription']) && $filters['circonscription'] !== 'all') {
+            $where_clauses[] = 'nom_circonscription = %s';
+            $values[]        = $filters['circonscription'];
+        }
+
         if (!empty($filters['search'])) {
             $like            = '%' . $wpdb->esc_like($filters['search']) . '%';
             $where_clauses[] = '(nom_etablissement LIKE %s OR nom_commune LIKE %s)';
@@ -535,6 +545,22 @@ class FSM_Local_DB
         global $wpdb;
         $table = self::table_name();
         return $wpdb->get_col("SELECT DISTINCT libelle_departement FROM {$table} ORDER BY libelle_departement");
+    }
+
+    /**
+     * Get distinct circonscriptions for a given département.
+     *
+     * @param string $departement Département label.
+     * @return array
+     */
+    public static function get_circonscriptions($departement)
+    {
+        global $wpdb;
+        $table = self::table_name();
+        return $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT nom_circonscription FROM {$table} WHERE libelle_departement = %s AND nom_circonscription != '' ORDER BY nom_circonscription",
+            $departement
+        ));
     }
 
     /**
@@ -576,8 +602,11 @@ class FSM_Local_DB
             "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_fsm_markers_%' OR option_name LIKE '_transient_timeout_fsm_markers_%'"
         );
 
-        // Also clear department cache.
+        // Also clear department and circonscription caches.
         delete_transient('fsm_departments');
+        $wpdb->query(
+            "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_fsm_circo_%' OR option_name LIKE '_transient_timeout_fsm_circo_%'"
+        );
     }
 
     // ──────────────────────────────────────────────────────────────────

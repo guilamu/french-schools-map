@@ -61,6 +61,33 @@
         return response.json();
     }
 
+    // ── Helper: clean circonscription name ────────────────────────────
+    // Removes standard prefixes so the dropdown shows short, readable names.
+    // The raw value is kept as option.value for server-side filtering.
+    function cleanNomCirconscription(value) {
+        if (!value) return '';
+        var cleaned = value;
+
+        // Patterns to remove (order matters — longer patterns first)
+        var patterns = [
+            /^Circonscription d'inspection du 1er degré de\s+/i,
+            /^Circonscription d'inspection du 1er degré du\s+/i,
+            /^Circonscription d'inspection du 1er degré d'/i,
+            /^Circonscription d'inspection du 1er degré\s+/i,
+            /^Circonscription d'inspection du 1r degré de\s+/i,
+            /^Circonscription d'inspection du 1r degré du\s+/i,
+            /^Circonscription d'inspection du 1r degré d'/i,
+            /^Circonscription d'inspection du 1r degré\s+/i,
+            /^Circonscription\s+/i
+        ];
+
+        patterns.forEach(function (pattern) {
+            cleaned = cleaned.replace(pattern, '');
+        });
+
+        return cleaned.trim();
+    }
+
     // ── Constructor ──────────────────────────────────────────────────
     window.FSM_Map = function (mapId, config) {
         this.mapId = mapId;
@@ -162,6 +189,12 @@
             var hasDefault =
                 (self.config.departement && self.config.departement !== 'all') ||
                 (self.config.academie && self.config.academie !== 'all');
+
+            // If a département default is pre-configured, load its circonscriptions.
+            if (self.config.departement && self.config.departement !== 'all') {
+                self.loadCirconscriptions(self.config.departement);
+            }
+
             self.loadMarkers(hasDefault);
         });
 
@@ -239,7 +272,40 @@
                 console.warn('[FSM] Failed to load departments', err);
             });
     };
+    // ── Load circonscriptions ─────────────────────────────────────────────
+    FSM_Map.prototype.loadCirconscriptions = function (dept) {
+        var self = this;
+        var select = this.wrapper.querySelector('.fsm-select-circo');
+        var group  = this.wrapper.querySelector('.fsm-filter-circo');
+        if (!select || !group) return Promise.resolve();
 
+        // Reset dropdown.
+        select.length = 1; // keep "Toutes" option
+        select.value = 'all';
+
+        if (!dept || dept === 'all') {
+            group.style.display = 'none';
+            return Promise.resolve();
+        }
+
+        return fetch(buildUrl(this.config.restUrl, 'circonscriptions', { departement: dept }), {
+            headers: { 'X-WP-Nonce': this.config.nonce },
+        })
+            .then(jsonResponse)
+            .then(function (circos) {
+                circos.forEach(function (c) {
+                    var opt = document.createElement('option');
+                    opt.value = c;
+                    opt.textContent = cleanNomCirconscription(c);
+                    select.appendChild(opt);
+                });
+                group.style.display = circos.length > 0 ? '' : 'none';
+            })
+            .catch(function (err) {
+                console.warn('[FSM] Failed to load circonscriptions', err);
+                group.style.display = 'none';
+            });
+    };
     // ── Load markers ─────────────────────────────────────────────────
     // fitView: pass true to auto-zoom the map to fit the loaded markers.
     FSM_Map.prototype.loadMarkers = function (fitView) {
@@ -539,6 +605,8 @@
                 if (acadSelect.value !== 'all' && deptSelect) {
                     deptSelect.value = 'all';
                 }
+                // Hide circonscription dropdown when switching to académie.
+                self.loadCirconscriptions('all');
                 self.loadMarkers(true);
             });
         }
@@ -548,6 +616,16 @@
                 if (deptSelect.value !== 'all' && acadSelect) {
                     acadSelect.value = 'all';
                 }
+                // Load circonscriptions for the selected département.
+                self.loadCirconscriptions(deptSelect.value);
+                self.loadMarkers(true);
+            });
+        }
+
+        // Circonscription filter.
+        var circoSelect = this.wrapper.querySelector('.fsm-select-circo');
+        if (circoSelect) {
+            circoSelect.addEventListener('change', function () {
                 self.loadMarkers(true);
             });
         }
@@ -588,6 +666,7 @@
         var statut = this.wrapper.querySelector('.fsm-select-statut');
         var ep = this.wrapper.querySelector('.fsm-select-ep');
         var search = this.wrapper.querySelector('.fsm-search-input');
+        var circo = this.wrapper.querySelector('.fsm-select-circo');
 
         // Académie and département are mutually exclusive; département takes priority.
         // Check UI dropdowns first, then fall back to config defaults.
@@ -623,6 +702,7 @@
 
         if (statut && statut.value !== 'all') params.statut = statut.value;
         if (ep && ep.value !== 'all') params.ep = ep.value;
+        if (circo && circo.value !== 'all' && deptVal !== 'all') params.circonscription = circo.value;
         if (search && search.value.length >= 2) params.search = search.value;
 
         // Fallback for statut config default when no widget.

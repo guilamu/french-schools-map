@@ -55,6 +55,11 @@ class FSM_REST_API
                     'sanitize_callback' => 'sanitize_text_field',
                     'default'           => '',
                 ),
+                'circonscription' => array(
+                    'type'              => 'string',
+                    'sanitize_callback' => 'sanitize_text_field',
+                    'default'           => 'all',
+                ),
             ),
         ));
 
@@ -92,6 +97,7 @@ class FSM_REST_API
                 'statut'      => array('type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => 'all'),
                 'ep'          => array('type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => 'all'),
                 'search'      => array('type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => ''),
+                'circonscription' => array('type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => 'all'),
             ),
         ));
 
@@ -100,6 +106,20 @@ class FSM_REST_API
             'methods'             => WP_REST_Server::READABLE,
             'callback'            => array(__CLASS__, 'get_departments'),
             'permission_callback' => '__return_true',
+        ));
+
+        // GET /fsm/v1/circonscriptions – list of circonscriptions for a département.
+        register_rest_route(self::REST_NAMESPACE, '/circonscriptions', array(
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => array(__CLASS__, 'get_circonscriptions'),
+            'permission_callback' => '__return_true',
+            'args'                => array(
+                'departement' => array(
+                    'type'              => 'string',
+                    'required'          => true,
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+            ),
         ));
 
         // GET /fsm/v1/stats – global stats.
@@ -145,6 +165,7 @@ class FSM_REST_API
             'statut'      => $request->get_param('statut'),
             'ep'          => $request->get_param('ep'),
             'search'      => $request->get_param('search'),
+            'circonscription' => $request->get_param('circonscription'),
         );
 
         // Build a cache key from the filters.
@@ -182,6 +203,7 @@ class FSM_REST_API
             'statut'      => $request->get_param('statut'),
             'ep'          => $request->get_param('ep'),
             'search'      => $request->get_param('search'),
+            'circonscription' => $request->get_param('circonscription'),
         );
 
         $cache_key = 'fsm_schools_' . md5(wp_json_encode($filters));
@@ -241,6 +263,28 @@ class FSM_REST_API
         set_transient('fsm_departments', $depts, DAY_IN_SECONDS);
 
         return new WP_REST_Response($depts, 200);
+    }
+
+    /**
+     * Return circonscription list for a given département.
+     */
+    public static function get_circonscriptions(WP_REST_Request $request)
+    {
+        $dept = $request->get_param('departement');
+        if (empty($dept)) {
+            return new WP_REST_Response(array(), 200);
+        }
+
+        $cache_key = 'fsm_circo_' . md5($dept);
+        $cached    = get_transient($cache_key);
+        if ($cached !== false) {
+            return new WP_REST_Response($cached, 200);
+        }
+
+        $circos = FSM_Local_DB::get_circonscriptions($dept);
+        set_transient($cache_key, $circos, DAY_IN_SECONDS);
+
+        return new WP_REST_Response($circos, 200);
     }
 
     /**

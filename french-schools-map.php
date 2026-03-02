@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.0.0');
+define('FSM_VERSION', '1.1.0');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -247,6 +247,13 @@ function fsm_render_shortcode($atts = array())
                             <label for="<?php echo esc_attr($map_id); ?>-dept"><?php esc_html_e('Département', 'french-schools-map'); ?></label>
                             <select id="<?php echo esc_attr($map_id); ?>-dept" class="fsm-select-dept">
                                 <option value="all"><?php esc_html_e('Tous', 'french-schools-map'); ?></option>
+                            </select>
+                        </div>
+
+                        <div class="fsm-filter-group fsm-filter-circo" style="display:none;">
+                            <label for="<?php echo esc_attr($map_id); ?>-circo"><?php esc_html_e('Circonscription', 'french-schools-map'); ?></label>
+                            <select id="<?php echo esc_attr($map_id); ?>-circo" class="fsm-select-circo">
+                                <option value="all"><?php esc_html_e('Toutes', 'french-schools-map'); ?></option>
                             </select>
                         </div>
                     <?php endif; ?>

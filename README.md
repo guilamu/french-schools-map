@@ -214,6 +214,12 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.1.0 - 2026-03-02
+- Ajout du filtre « Circonscription » : un menu déroulant apparaît automatiquement lorsqu'un département est sélectionné
+- Nettoyage automatique des noms de circonscriptions (suppression des préfixes « Circonscription d'inspection du 1er degré de/du/d' », etc.)
+- Nouvel endpoint REST `GET /fsm/v1/circonscriptions?departement=...`
+- Le paramètre `circonscription` est pris en charge par les endpoints `/markers` et `/schools`
+
 ### 1.0.0
 - Initial release
 - Carte interactive avec Leaflet.js et OpenStreetMap

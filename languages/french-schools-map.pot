@@ -2,7 +2,7 @@
 # This file is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.0.0\n"
+"Project-Id-Version: French Schools Map 1.1.0\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
 "POT-Creation-Date: 2026-03-01T10:32:00+01:00\n"
 "MIME-Version: 1.0\n"

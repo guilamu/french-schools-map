@@ -577,6 +577,9 @@
         if (s.education_prioritaire && s.education_prioritaire !== 'NON') {
             html += '🏷️ ' + this.esc(s.education_prioritaire) + '<br>';
         }
+        if (s.nom_circonscription) {
+            html += '🏫 Circonscription : ' + this.esc(cleanNomCirconscription(s.nom_circonscription)) + '<br>';
+        }
 
         // Directions link (OpenStreetMap).
         if (s.latitude && s.longitude) {

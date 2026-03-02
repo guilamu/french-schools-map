@@ -214,6 +214,9 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.1.1 - 2026-03-02
+- Affichage du nom de la circonscription (nettoyé) dans la popup de détail de chaque école
+
 ### 1.1.0 - 2026-03-02
 - Ajout du filtre « Circonscription » : un menu déroulant apparaît automatiquement lorsqu'un département est sélectionné
 - Nettoyage automatique des noms de circonscriptions (suppression des préfixes « Circonscription d'inspection du 1er degré de/du/d' », etc.)

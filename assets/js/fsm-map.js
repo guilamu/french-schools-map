@@ -190,12 +190,16 @@
                 (self.config.departement && self.config.departement !== 'all') ||
                 (self.config.academie && self.config.academie !== 'all');
 
-            // If a département default is pre-configured, load its circonscriptions.
-            if (self.config.departement && self.config.departement !== 'all') {
-                self.loadCirconscriptions(self.config.departement);
-            }
+            // If a département default is pre-configured, load its circonscriptions
+            // and wait for the dropdown to be populated before loading markers,
+            // so the default circonscription value is included in the query.
+            var circoReady = (self.config.departement && self.config.departement !== 'all')
+                ? self.loadCirconscriptions(self.config.departement)
+                : Promise.resolve();
 
-            self.loadMarkers(hasDefault);
+            circoReady.then(function () {
+                self.loadMarkers(hasDefault);
+            });
         });
 
         // Handle map resize when container becomes visible.
@@ -300,6 +304,11 @@
                     select.appendChild(opt);
                 });
                 group.style.display = circos.length > 0 ? '' : 'none';
+
+                // Pre-select default circonscription if configured.
+                if (self.config.circonscription && self.config.circonscription !== 'all') {
+                    select.value = self.config.circonscription;
+                }
             })
             .catch(function (err) {
                 console.warn('[FSM] Failed to load circonscriptions', err);

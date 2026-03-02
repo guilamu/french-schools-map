@@ -18,7 +18,7 @@
     var __ = i18n.__;
 
     // Data passed from PHP (dropdown options).
-    var blockData = window.fsmBlockData || { departments: [], academies: [], defaultDept: 'all', defaultAcad: 'all' };
+    var blockData = window.fsmBlockData || { departments: [], academies: [], defaultDept: 'all', defaultAcad: 'all', restUrl: '', nonce: '' };
 
     // Build dropdown options.
     var deptOptions = [{ label: __('Tous', 'french-schools-map'), value: 'all' }];
@@ -35,6 +35,70 @@
     var globalAcad = blockData.defaultAcad && blockData.defaultAcad !== 'all' ? blockData.defaultAcad : null;
     var globalDept = blockData.defaultDept && blockData.defaultDept !== 'all' ? blockData.defaultDept : null;
     var lockNotice = __('Verrouillé par les réglages globaux du plugin.', 'french-schools-map');
+
+    // ── Clean circonscription name (same logic as frontend) ──────────
+    function cleanNomCirconscription(value) {
+        if (!value) return '';
+        var cleaned = value;
+        var patterns = [
+            /^Circonscription d'inspection du 1er degré de\s+/i,
+            /^Circonscription d'inspection du 1er degré du\s+/i,
+            /^Circonscription d'inspection du 1er degré d'/i,
+            /^Circonscription d'inspection du 1er degré\s+/i,
+            /^Circonscription d'inspection du 1r degré de\s+/i,
+            /^Circonscription d'inspection du 1r degré du\s+/i,
+            /^Circonscription d'inspection du 1r degré d'/i,
+            /^Circonscription d'inspection du 1r degré\s+/i,
+            /^Circonscription\s+/i
+        ];
+        patterns.forEach(function (p) { cleaned = cleaned.replace(p, ''); });
+        return cleaned.trim();
+    }
+
+    // ── Circonscription select component (fetches options on dept change) ─
+    var useState  = element.useState;
+    var useEffect = element.useEffect;
+
+    function FSMCircoSelect(props) {
+        var stateOpts = useState([{ label: __('Toutes', 'french-schools-map'), value: 'all' }]);
+        var options   = stateOpts[0];
+        var setOpts   = stateOpts[1];
+        var stateLoad = useState(false);
+        var loading   = stateLoad[0];
+        var setLoad   = stateLoad[1];
+
+        useEffect(function () {
+            if (!props.dept || props.dept === 'all' || !blockData.restUrl) {
+                setOpts([{ label: __('Toutes', 'french-schools-map'), value: 'all' }]);
+                return;
+            }
+            setLoad(true);
+            // Build URL carefully: restUrl may already contain '?' (plain permalinks).
+            var base = blockData.restUrl + 'circonscriptions';
+            var sep  = base.indexOf('?') !== -1 ? '&' : '?';
+            var url  = base + sep + 'departement=' + encodeURIComponent(props.dept);
+            fetch(url, { headers: { 'X-WP-Nonce': blockData.nonce } })
+                .then(function (r) { return r.json(); })
+                .then(function (circos) {
+                    var opts = [{ label: __('Toutes', 'french-schools-map'), value: 'all' }];
+                    (circos || []).forEach(function (c) {
+                        opts.push({ label: cleanNomCirconscription(c), value: c });
+                    });
+                    setOpts(opts);
+                    setLoad(false);
+                })
+                .catch(function () { setLoad(false); });
+        }, [props.dept]);
+
+        return el(SelectControl, {
+            label: __('Circonscription', 'french-schools-map'),
+            value: props.value,
+            options: options,
+            disabled: loading,
+            onChange: props.onChange,
+            help: loading ? __('Chargement…', 'french-schools-map') : undefined,
+        });
+    }
 
     registerBlock('french-schools-map/map', {
         title: __('French Schools Map', 'french-schools-map'),
@@ -56,6 +120,7 @@
             departement: { type: 'string', default: 'all' },
             academie: { type: 'string', default: 'all' },
             statut: { type: 'string', default: 'all' },
+            circonscription: { type: 'string', default: 'all' },
             show_filters: { type: 'string', default: 'true' },
             show_search: { type: 'string', default: 'true' },
             show_filter_academie: { type: 'string', default: 'true' },
@@ -155,12 +220,29 @@
                             options: deptOptions,
                             disabled: !!globalDept || !!globalAcad,
                             onChange: function (val) {
-                                var o = { departement: val };
+                                var o = { departement: val, circonscription: 'all' };
                                 if (val !== 'all') o.academie = 'all';
                                 props.setAttributes(o);
                             },
                             help: (globalDept || globalAcad) ? lockNotice : undefined,
-                        })
+                        }),
+                        // Circonscription selector — only when a département is selected.
+                        (function () {
+                            var effectiveDept = globalDept || attrs.departement;
+                            if (!effectiveDept || effectiveDept === 'all') return null;
+
+                            // Use React state via element.useState to fetch options.
+                            var useState  = element.useState;
+                            var useEffect = element.useEffect;
+
+                            return el(FSMCircoSelect, {
+                                dept: effectiveDept,
+                                value: attrs.circonscription || 'all',
+                                onChange: setAttr('circonscription'),
+                                restUrl: blockData.restUrl,
+                                nonce: blockData.nonce,
+                            });
+                        })()
                     ),
                     el(
                         PanelBody,
@@ -247,7 +329,8 @@
                             ' · ',
                             attrs.statut !== 'all' ? attrs.statut : __('Tous statuts', 'french-schools-map'),
                             ' · ',
-                            attrs.academie !== 'all' ? attrs.academie : (attrs.departement !== 'all' ? attrs.departement : __('Tous départements', 'french-schools-map'))
+                            attrs.academie !== 'all' ? attrs.academie : (attrs.departement !== 'all' ? attrs.departement : __('Tous départements', 'french-schools-map')),
+                            attrs.circonscription && attrs.circonscription !== 'all' ? ' · ' + cleanNomCirconscription(attrs.circonscription) : ''
                         ),
                         el('p', null,
                             __('Hauteur', 'french-schools-map'), ': ', attrs.height,

@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.1.1
+ * Version: 1.1.2
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.1.1');
+define('FSM_VERSION', '1.1.2');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -146,6 +146,7 @@ function fsm_render_shortcode($atts = array())
             'academie'              => get_option('fsm_default_academie', 'all'),
             'statut'                => 'all',
             'education_prioritaire' => 'all',
+            'circonscription'       => 'all',
             'show_filters'          => 'true',
             'show_search'           => 'true',
             'show_filter_academie'  => 'true',
@@ -210,6 +211,7 @@ function fsm_render_shortcode($atts = array())
         'academies'             => FSM_Academies::get_map(),
         'statut'                => $atts['statut'],
         'educationPrioritaire'  => $atts['education_prioritaire'],
+        'circonscription'       => $atts['circonscription'],
         'showFilters'           => $show_filters,
         'showSearch'            => $show_search,
         'cluster'               => $cluster,
@@ -414,6 +416,8 @@ function fsm_register_block()
         'academies'   => $block_academies,
         'defaultDept' => get_option('fsm_default_departement', 'all'),
         'defaultAcad' => get_option('fsm_default_academie', 'all'),
+        'restUrl'     => esc_url_raw(rest_url('fsm/v1/')),
+        'nonce'       => wp_create_nonce('wp_rest'),
     ));
 
     register_block_type('french-schools-map/map', array(
@@ -449,6 +453,10 @@ function fsm_register_block()
                 'default' => 'all',
             ),
             'statut' => array(
+                'type'    => 'string',
+                'default' => 'all',
+            ),
+            'circonscription' => array(
                 'type'    => 'string',
                 'default' => 'all',
             ),

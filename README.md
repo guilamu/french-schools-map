@@ -214,6 +214,9 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.1.2 - 2026-03-02
+- Ajout de la circonscription par défaut dans le bloc Gutenberg (s'affiche uniquement si un département est sélectionné)
+
 ### 1.1.1 - 2026-03-02
 - Affichage du nom de la circonscription (nettoyé) dans la popup de détail de chaque école
 

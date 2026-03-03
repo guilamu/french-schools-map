@@ -214,6 +214,9 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.1.3 - 2026-03-03
+- Ajout d'une infobulle (tooltip) au survol de chaque marqueur : affiche le nom court de l'établissement (sans le préfixe de type : École, Collège, Lycée…) suivi du nom de la ville
+
 ### 1.1.2 - 2026-03-02
 - Ajout de la circonscription par défaut dans le bloc Gutenberg (s'affiche uniquement si un département est sélectionné)
 

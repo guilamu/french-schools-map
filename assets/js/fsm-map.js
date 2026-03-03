@@ -88,6 +88,42 @@
         return cleaned.trim();
     }
 
+    // ── Helper: clean school name for tooltip ──────────────────────────
+    // Strips leading type keywords (École, Collège, Lycée…) so the hover
+    // tooltip shows a short, readable name.  Capitalises the first letter.
+    function cleanSchoolName(name) {
+        if (!name) return '';
+        var cleaned = name;
+
+        // Patterns to strip (order: longest first)
+        var patterns = [
+            /^[ÉE]COLE\s+DE\s+NIVEAU\s+[ÉE]L[ÉE]MENTAIRE\s+/i,
+            /^[ÉE]COLE\s+[ÉE]L[ÉE]MENTAIRE\s+/i,
+            /^[ÉE]COLE\s+MATERNELLE\s+/i,
+            /^[ÉE]COLE\s+PRIMAIRE\s+/i,
+            /^[ÉE]COLE\s+/i,
+            /^COLL[ÈE]GE\s+/i,
+            /^LYC[ÉE]E\s+/i
+        ];
+
+        patterns.forEach(function (p) {
+            cleaned = cleaned.replace(p, '');
+        });
+
+        cleaned = cleaned.trim();
+        if (!cleaned) return name; // safety: return original if nothing left
+
+        // Capitalise first letter, lowercase the rest only if the whole
+        // string is uppercase (preserve mixed-case names like "De Gaulle").
+        if (cleaned === cleaned.toUpperCase()) {
+            cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1).toLowerCase();
+        } else {
+            cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+        }
+
+        return cleaned;
+    }
+
     // ── Constructor ──────────────────────────────────────────────────
     window.FSM_Map = function (mapId, config) {
         this.mapId = mapId;
@@ -410,7 +446,8 @@
             var statut = item[6];
             var typeCfg = TYPE_CONFIG[typeId] || TYPE_CONFIG[4];
 
-            var marker = L.marker([lat, lng], { icon: makeIcon(typeId) });
+            var tooltip = cleanSchoolName(name) + ' \u2013 ' + city;
+            var marker = L.marker([lat, lng], { icon: makeIcon(typeId), title: tooltip });
 
             // Popup: use pre-fetched rich details if available; otherwise lightweight.
             var cached = self._schoolCache[id];

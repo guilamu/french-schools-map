@@ -316,7 +316,7 @@
     FSM_Map.prototype.loadCirconscriptions = function (dept) {
         var self = this;
         var select = this.wrapper.querySelector('.fsm-select-circo');
-        var group  = this.wrapper.querySelector('.fsm-filter-circo');
+        var group = this.wrapper.querySelector('.fsm-filter-circo');
         if (!select || !group) return Promise.resolve();
 
         // Reset dropdown.
@@ -446,7 +446,7 @@
             var statut = item[6];
             var typeCfg = TYPE_CONFIG[typeId] || TYPE_CONFIG[4];
 
-            var tooltip = cleanSchoolName(name) + ' \u2013 ' + city;
+            var tooltip = name + ' \u2013 ' + city;
             var marker = L.marker([lat, lng], { icon: makeIcon(typeId), title: tooltip });
 
             // Popup: use pre-fetched rich details if available; otherwise lightweight.

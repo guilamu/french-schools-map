@@ -116,6 +116,7 @@ Les données sont synchronisées automatiquement chaque mois depuis l'Annuaire d
 | `show_filter_statut` | `true` | Afficher le filtre Statut (Public/Privé) |
 | `show_filter_types` | `true` | Afficher le filtre Types (École/Collège/Lycée) |
 | `show_filter_ep` | `true` | Afficher le filtre Éducation prioritaire |
+| `show_circo_zones` | `true` | Afficher les zones colorées par circonscription IEN |
 | `cluster` | `true` | Activer le clustering des marqueurs |
 | `max_zoom` | `18` | Zoom maximal |
 | `tile_url` | _(vide)_ | URL personnalisée pour les tuiles cartographiques |
@@ -139,6 +140,11 @@ Carte de l'académie de Lyon :
 [french_schools_map academie="Lyon" zoom="8" center_lat="45.764" center_lng="4.8357"]
 ```
 
+Carte d'un département avec zones de circonscription :
+```
+[french_schools_map departement="Haute-Garonne" show_circo_zones="true"]
+```
+
 ### Réglages par défaut
 
 Dans **Réglages → French Schools Map**, vous pouvez définir un département ou une académie par défaut. Ces valeurs seront utilisées automatiquement si le shortcode ne précise rien.
@@ -154,6 +160,7 @@ Les données proviennent du portail Open Data du Ministère de l'Éducation Nati
 - **Dataset** : [Annuaire de l'éducation](https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/)
 - **API** : OpenDataSoft API v2.1
 - **Fréquence** : Synchronisation mensuelle automatique
+- **Contours communaux** : [geo.api.gouv.fr](https://geo.api.gouv.fr/) (pour les zones colorées par circonscription)
 
 ### Données affichées
 
@@ -167,6 +174,7 @@ Les données proviennent du portail Open Data du Ministère de l'Éducation Nati
 | Téléphone | Numéro de contact |
 | Email | Adresse email |
 | Éducation prioritaire | REP, REP+ ou non |
+| Circonscription | Circonscription IEN (1er degré) |
 
 ## Administration
 
@@ -187,6 +195,8 @@ Le plugin expose des endpoints REST pour les développeurs :
 | `GET /wp-json/fsm/v1/school/{id}` | Détails d'un établissement |
 | `GET /wp-json/fsm/v1/departments` | Liste des départements |
 | `GET /wp-json/fsm/v1/academies` | Carte académies → départements |
+| `GET /wp-json/fsm/v1/circonscriptions` | Circonscriptions d'un département |
+| `GET /wp-json/fsm/v1/commune-circo-map` | Mapping commune → circonscription |
 | `GET /wp-json/fsm/v1/stats` | Statistiques globales |
 
 ### Paramètres de filtrage (endpoint markers)
@@ -211,8 +221,21 @@ Le plugin gère ~69 000 points grâce à :
 
 - La synchronisation initiale peut prendre plusieurs minutes selon les performances du serveur (téléchargement de ~69 000 enregistrements).
 - Sur les hébergements mutualisés avec un `max_execution_time` très court, la synchronisation peut échouer et nécessiter plusieurs tentatives.
+- Les zones de circonscription pour les communes sans école sont approximées par la circonscription la plus proche géographiquement.
 
 ## Changelog
+
+### 1.2.0 - 2026-03-04
+- **Zones de circonscription IEN** : fond de couleur par circonscription affiché lorsqu'un département est sélectionné
+  - Contours communaux via l'API geo.api.gouv.fr, colorés par circonscription
+  - Tooltip au survol avec le nom de la circonscription
+  - Les communes sans école sont assignées à la circonscription la plus proche
+  - Attribut `show_circo_zones` (défaut `true`) pour activer/désactiver
+- Nouvel endpoint REST `GET /fsm/v1/commune-circo-map?departement=...`
+- Ajout de `code_commune` dans le schéma de la base de données
+- Correction du schéma DB lors de la synchronisation (appel `dbDelta` avant import)
+- Correction du cron : la prochaine synchronisation s'affiche correctement (1 mois après le dernier sync)
+- Correction i18n : toutes les chaînes admin utilisent désormais des msgids anglais conformes au fichier .pot
 
 ### 1.1.3 - 2026-03-03
 - Ajout d'une infobulle (tooltip) au survol de chaque marqueur : affiche le nom court de l'établissement (sans le préfixe de type : École, Collège, Lycée…) suivi du nom de la ville

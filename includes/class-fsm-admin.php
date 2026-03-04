@@ -128,21 +128,21 @@ class FSM_Admin
 ?>
         <div class="wrap fsm-admin-wrap">
             <h1><?php esc_html_e('French Schools Map', 'french-schools-map'); ?></h1>
-            <p class="description"><?php esc_html_e('Carte interactive des établissements scolaires français.', 'french-schools-map'); ?></p>
+            <p class="description"><?php esc_html_e('Interactive map of French schools.', 'french-schools-map'); ?></p>
 
             <!-- Shortcode help -->
             <div class="fsm-card">
-                <h2><?php esc_html_e('Utilisation', 'french-schools-map'); ?></h2>
-                <p><?php esc_html_e('Ajoutez la carte dans une page ou un article avec le shortcode :', 'french-schools-map'); ?></p>
+                <h2><?php esc_html_e('Usage', 'french-schools-map'); ?></h2>
+                <p><?php esc_html_e('Add the map to a page or post with the shortcode:', 'french-schools-map'); ?></p>
                 <code>[french_schools_map]</code>
-                <p style="margin-top:10px;"><?php esc_html_e('Ou utilisez le bloc « French Schools Map » dans l\'éditeur Gutenberg.', 'french-schools-map'); ?></p>
+                <p style="margin-top:10px;"><?php esc_html_e('Or use the "French Schools Map" block in the Gutenberg editor.', 'french-schools-map'); ?></p>
 
-                <h3><?php esc_html_e('Attributs disponibles', 'french-schools-map'); ?></h3>
+                <h3><?php esc_html_e('Available attributes', 'french-schools-map'); ?></h3>
                 <table class="widefat fixed striped">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e('Attribut', 'french-schools-map'); ?></th>
-                            <th><?php esc_html_e('Défaut', 'french-schools-map'); ?></th>
+                            <th><?php esc_html_e('Attribute', 'french-schools-map'); ?></th>
+                            <th><?php esc_html_e('Default', 'french-schools-map'); ?></th>
                             <th><?php esc_html_e('Description', 'french-schools-map'); ?></th>
                         </tr>
                     </thead>
@@ -150,47 +150,47 @@ class FSM_Admin
                         <tr>
                             <td><code>height</code></td>
                             <td>600px</td>
-                            <td><?php esc_html_e('Hauteur de la carte', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Map height', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>zoom</code></td>
                             <td>6</td>
-                            <td><?php esc_html_e('Niveau de zoom initial', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Initial zoom level', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>types</code></td>
                             <td>all</td>
-                            <td><?php esc_html_e('Types : Ecole, Collège, Lycée (séparés par des virgules)', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Types: Ecole, Collège, Lycée (comma-separated)', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>departement</code></td>
                             <td>all</td>
-                            <td><?php esc_html_e('Nom du département à filtrer', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Department name to filter', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>academie</code></td>
                             <td>all</td>
-                            <td><?php esc_html_e('Nom de l\'académie à filtrer', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Academy name to filter', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>statut</code></td>
                             <td>all</td>
-                            <td><?php esc_html_e('Public ou Privé', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Public or Privé', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>show_filters</code></td>
                             <td>true</td>
-                            <td><?php esc_html_e('Afficher le panneau de filtres', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Show filter panel', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>show_search</code></td>
                             <td>true</td>
-                            <td><?php esc_html_e('Afficher la barre de recherche', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Show search bar', 'french-schools-map'); ?></td>
                         </tr>
                         <tr>
                             <td><code>cluster</code></td>
                             <td>true</td>
-                            <td><?php esc_html_e('Activer le clustering de marqueurs', 'french-schools-map'); ?></td>
+                            <td><?php esc_html_e('Enable marker clustering', 'french-schools-map'); ?></td>
                         </tr>
                     </tbody>
                 </table>
@@ -199,7 +199,7 @@ class FSM_Admin
             <!-- Default filters settings -->
             <div class="fsm-card">
                 <h2><?php esc_html_e('Default settings', 'french-schools-map'); ?></h2>
-                <p class="description"><?php esc_html_e('These values are used as defaults when the shortcode or block does not specify an attribute.', 'french-schools-map'); ?></p>
+                <p class="description"><?php esc_html_e('Set the default geographic filter. Choose either an academy or a department (mutually exclusive). This setting applies when the shortcode has no departement/academie attribute.', 'french-schools-map'); ?></p>
 
                 <form method="post">
                     <?php wp_nonce_field('fsm_settings_nonce'); ?>
@@ -234,10 +234,10 @@ class FSM_Admin
                                 <select name="fsm_default_types" id="fsm_default_types">
                                     <option value="all" <?php selected($saved_types, 'all'); ?>><?php esc_html_e('All (schools + middle + high)', 'french-schools-map'); ?></option>
                                     <option value="Ecole" <?php selected($saved_types, 'Ecole'); ?>><?php esc_html_e('Schools only', 'french-schools-map'); ?></option>
-                                    <option value="Coll&#232;ge" <?php selected($saved_types, 'Coll&#232;ge'); ?>><?php esc_html_e('Middle schools only', 'french-schools-map'); ?></option>
-                                    <option value="Lyc&#233;e" <?php selected($saved_types, 'Lyc&#233;e'); ?>><?php esc_html_e('High schools only', 'french-schools-map'); ?></option>
-                                    <option value="Ecole,Coll&#232;ge" <?php selected($saved_types, 'Ecole,Coll&#232;ge'); ?>><?php esc_html_e('Schools + Middle schools', 'french-schools-map'); ?></option>
-                                    <option value="Coll&#232;ge,Lyc&#233;e" <?php selected($saved_types, 'Coll&#232;ge,Lyc&#233;e'); ?>><?php esc_html_e('Middle + High schools', 'french-schools-map'); ?></option>
+                                    <option value="Coll&#232;ge" <?php selected($saved_types, 'Collège'); ?>><?php esc_html_e('Middle schools only', 'french-schools-map'); ?></option>
+                                    <option value="Lyc&#233;e" <?php selected($saved_types, 'Lycée'); ?>><?php esc_html_e('High schools only', 'french-schools-map'); ?></option>
+                                    <option value="Ecole,Coll&#232;ge" <?php selected($saved_types, 'Ecole,Collège'); ?>><?php esc_html_e('Schools + Middle schools', 'french-schools-map'); ?></option>
+                                    <option value="Coll&#232;ge,Lyc&#233;e" <?php selected($saved_types, 'Collège,Lycée'); ?>><?php esc_html_e('Middle + High schools', 'french-schools-map'); ?></option>
                                 </select>
                             </td>
                         </tr>
@@ -247,7 +247,7 @@ class FSM_Admin
                                 <select name="fsm_default_statut" id="fsm_default_statut">
                                     <option value="all" <?php selected($saved_statut, 'all'); ?>><?php esc_html_e('All (public + private)', 'french-schools-map'); ?></option>
                                     <option value="Public" <?php selected($saved_statut, 'Public'); ?>><?php esc_html_e('Public only', 'french-schools-map'); ?></option>
-                                    <option value="Priv&#233;" <?php selected($saved_statut, 'Priv&#233;'); ?>><?php esc_html_e('Private only', 'french-schools-map'); ?></option>
+                                    <option value="Privé" <?php selected($saved_statut, 'Privé'); ?>><?php esc_html_e('Private only', 'french-schools-map'); ?></option>
                                 </select>
                             </td>
                         </tr>
@@ -286,17 +286,17 @@ class FSM_Admin
 
             <!-- Sync status -->
             <div class="fsm-card">
-                <h2><?php esc_html_e('Synchronisation des données', 'french-schools-map'); ?></h2>
+                <h2><?php esc_html_e('Data synchronisation', 'french-schools-map'); ?></h2>
 
                 <table class="form-table fsm-status-table" id="fsm-status-table">
                     <tr>
-                        <th><?php esc_html_e('Statut', 'french-schools-map'); ?></th>
+                        <th><?php esc_html_e('Status', 'french-schools-map'); ?></th>
                         <td id="fsm-sync-status">
                             <?php echo esc_html(self::format_status($status['status'])); ?>
                         </td>
                     </tr>
                     <tr>
-                        <th><?php esc_html_e('Dernière synchronisation', 'french-schools-map'); ?></th>
+                        <th><?php esc_html_e('Last sync', 'french-schools-map'); ?></th>
                         <td id="fsm-last-sync">
                             <?php
                             if ($status['last_sync']) {
@@ -307,19 +307,19 @@ class FSM_Admin
                                     )
                                 );
                             } else {
-                                esc_html_e('Jamais', 'french-schools-map');
+                                esc_html_e('Never', 'french-schools-map');
                             }
                             ?>
                         </td>
                     </tr>
                     <tr>
-                        <th><?php esc_html_e('Enregistrements', 'french-schools-map'); ?></th>
+                        <th><?php esc_html_e('Records', 'french-schools-map'); ?></th>
                         <td id="fsm-record-count">
                             <?php echo esc_html(number_format_i18n($status['record_count'])); ?>
                         </td>
                     </tr>
                     <tr>
-                        <th><?php esc_html_e('Prochaine synchronisation', 'french-schools-map'); ?></th>
+                        <th><?php esc_html_e('Next sync', 'french-schools-map'); ?></th>
                         <td>
                             <?php
                             if ($next) {
@@ -330,14 +330,14 @@ class FSM_Admin
                                     )
                                 );
                             } else {
-                                esc_html_e('Non planifiée', 'french-schools-map');
+                                esc_html_e('Not scheduled', 'french-schools-map');
                             }
                             ?>
                         </td>
                     </tr>
                     <?php if (!empty($status['error'])) : ?>
                         <tr>
-                            <th><?php esc_html_e('Erreur', 'french-schools-map'); ?></th>
+                            <th><?php esc_html_e('Error', 'french-schools-map'); ?></th>
                             <td class="fsm-error"><?php echo esc_html($status['error']); ?></td>
                         </tr>
                     <?php endif; ?>
@@ -345,13 +345,13 @@ class FSM_Admin
 
                 <p>
                     <button type="button" class="button button-primary" id="fsm-sync-btn">
-                        <?php esc_html_e('Synchroniser maintenant', 'french-schools-map'); ?>
+                        <?php esc_html_e('Sync now', 'french-schools-map'); ?>
                     </button>
                     <span id="fsm-sync-spinner" class="spinner" style="float:none;"></span>
                     <span id="fsm-sync-message"></span>
                 </p>
                 <p class="description">
-                    <?php esc_html_e('La synchronisation télécharge l\'intégralité de l\'annuaire (~69 000 établissements) depuis le portail Open Data du Ministère de l\'Éducation Nationale. Cette opération peut prendre plusieurs minutes.', 'french-schools-map'); ?>
+                    <?php esc_html_e('The sync downloads the full school directory (~69,000 establishments) from the Open Data portal of the Ministry of National Education. This operation may take several minutes.', 'french-schools-map'); ?>
                 </p>
             </div>
         </div>
@@ -364,10 +364,10 @@ class FSM_Admin
     private static function format_status($status)
     {
         $labels = array(
-            'idle'    => __('En attente', 'french-schools-map'),
-            'running' => __('En cours…', 'french-schools-map'),
-            'success' => __('Succès', 'french-schools-map'),
-            'error'   => __('Erreur', 'french-schools-map'),
+            'idle'    => __('Idle', 'french-schools-map'),
+            'running' => __('Running…', 'french-schools-map'),
+            'success' => __('Success', 'french-schools-map'),
+            'error'   => __('Error', 'french-schools-map'),
         );
         return $labels[$status] ?? $status;
     }

@@ -2,9 +2,9 @@
 # This file is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.1.2\n"
+"Project-Id-Version: French Schools Map 1.2.0\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
-"POT-Creation-Date: 2026-03-01T10:32:00+01:00\n"
+"POT-Creation-Date: 2026-03-04T09:00:00+01:00\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -188,11 +188,55 @@ msgid "Default department"
 msgstr ""
 
 #: includes/class-fsm-admin.php
-msgid "All (no filter)"
+msgid "The department takes priority over the academy. If a department is chosen, the academy is ignored."
 msgstr ""
 
 #: includes/class-fsm-admin.php
-msgid "The department takes priority over the academy. If a department is chosen, the academy is ignored."
+msgid "Default types"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "All (schools + middle + high)"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Schools only"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Middle schools only"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "High schools only"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Schools + Middle schools"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Middle + High schools"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Default status"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "All (public + private)"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Public only"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Private only"
+msgstr ""
+
+#: includes/class-fsm-admin.php
+msgid "Default priority education"
 msgstr ""
 
 #: includes/class-fsm-admin.php
@@ -203,7 +247,7 @@ msgstr ""
 msgid "Data synchronisation"
 msgstr ""
 
-#: includes/class-fsm-admin.php
+#: includes/class-fsm-admin.php french-schools-map.php (shortcode HTML)
 msgid "Status"
 msgstr ""
 
@@ -225,10 +269,6 @@ msgstr ""
 
 #: includes/class-fsm-admin.php
 msgid "Not scheduled"
-msgstr ""
-
-#: includes/class-fsm-admin.php
-msgid "Error"
 msgstr ""
 
 #: includes/class-fsm-admin.php
@@ -296,10 +336,6 @@ msgid "Department"
 msgstr ""
 
 #: french-schools-map.php (shortcode HTML)
-msgid "Status"
-msgstr ""
-
-#: french-schools-map.php (shortcode HTML)
 msgid "Public"
 msgstr ""
 
@@ -332,5 +368,5 @@ msgid "Locate me"
 msgstr ""
 
 #: french-schools-map.php (shortcode HTML)
-msgid "Fullscreen"
+msgid "Circumscription"
 msgstr ""

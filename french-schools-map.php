@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.1.3
+ * Version: 1.2.0
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.1.3');
+define('FSM_VERSION', '1.2.0');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -157,6 +157,7 @@ function fsm_render_shortcode($atts = array())
             'cluster'               => 'false',
             'max_zoom'              => '18',
             'tile_url'              => '',
+            'show_circo_zones'      => 'true',
         ),
         $atts,
         'french_schools_map'
@@ -190,6 +191,7 @@ function fsm_render_shortcode($atts = array())
     $show_filters = filter_var($atts['show_filters'], FILTER_VALIDATE_BOOLEAN);
     $show_search  = filter_var($atts['show_search'], FILTER_VALIDATE_BOOLEAN);
     $cluster      = filter_var($atts['cluster'], FILTER_VALIDATE_BOOLEAN);
+    $show_circo   = filter_var($atts['show_circo_zones'], FILTER_VALIDATE_BOOLEAN);
 
     // Per-filter visibility.
     $show_f_academie = filter_var($atts['show_filter_academie'], FILTER_VALIDATE_BOOLEAN);
@@ -216,6 +218,7 @@ function fsm_render_shortcode($atts = array())
         'showSearch'            => $show_search,
         'cluster'               => $cluster,
         'tileUrl'               => $atts['tile_url'],
+        'showCircoZones'        => $show_circo,
         'restUrl'               => esc_url_raw(rest_url('fsm/v1/')),
         'nonce'                 => wp_create_nonce('wp_rest'),
     );
@@ -491,6 +494,10 @@ function fsm_register_block()
             'cluster' => array(
                 'type'    => 'string',
                 'default' => 'false',
+            ),
+            'show_circo_zones' => array(
+                'type'    => 'string',
+                'default' => 'true',
             ),
         ),
     ));

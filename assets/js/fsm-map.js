@@ -30,6 +30,53 @@
         4: { label: 'Autre', color: '#9b59b6', icon: '📚' }, // purple
     };
 
+    // ── Palette for circo zone colouring ──────────────────────────────
+    var CIRCO_COLORS = [
+        '#e6194b', '#3cb44b', '#4363d8', '#f58231', '#911eb4',
+        '#42d4f4', '#f032e6', '#bfef45', '#fabed4', '#469990',
+        '#dcbeff', '#9A6324', '#800000', '#aaffc3', '#808000',
+        '#000075', '#a9a9a9', '#e6beff', '#fffac8', '#ffd8b1',
+    ];
+
+    // ── Département name → INSEE code mapping ─────────────────────────
+    var DEPT_CODES = {
+        'Ain': '01', 'Aisne': '02', 'Allier': '03', 'Alpes-de-Haute-Provence': '04',
+        'Hautes-Alpes': '05', 'Alpes-Maritimes': '06', 'Ardèche': '07', 'Ardennes': '08',
+        'Ariège': '09', 'Aube': '10', 'Aude': '11', 'Aveyron': '12',
+        'Bouches-du-Rhône': '13', 'Calvados': '14', 'Cantal': '15', 'Charente': '16',
+        'Charente-Maritime': '17', 'Cher': '18', 'Corrèze': '19',
+        'Corse-du-Sud': '2A', 'Haute-Corse': '2B',
+        "Côte-d'Or": '21', "Côte-d\u2019Or": '21',
+        "Côtes-d'Armor": '22', "Côtes-d\u2019Armor": '22',
+        'Creuse': '23', 'Dordogne': '24',
+        'Doubs': '25', 'Drôme': '26', 'Eure': '27', 'Eure-et-Loir': '28',
+        'Finistère': '29', 'Gard': '30', 'Haute-Garonne': '31', 'Gers': '32',
+        'Gironde': '33', 'Hérault': '34', 'Ille-et-Vilaine': '35', 'Indre': '36',
+        'Indre-et-Loire': '37', 'Isère': '38', 'Jura': '39', 'Landes': '40',
+        'Loir-et-Cher': '41', 'Loire': '42', 'Haute-Loire': '43', 'Loire-Atlantique': '44',
+        'Loiret': '45', 'Lot': '46', 'Lot-et-Garonne': '47', 'Lozère': '48',
+        'Maine-et-Loire': '49', 'Manche': '50', 'Marne': '51', 'Haute-Marne': '52',
+        'Mayenne': '53', 'Meurthe-et-Moselle': '54', 'Meuse': '55', 'Morbihan': '56',
+        'Moselle': '57', 'Nièvre': '58', 'Nord': '59', 'Oise': '60',
+        'Orne': '61', 'Pas-de-Calais': '62', 'Puy-de-Dôme': '63',
+        'Pyrénées-Atlantiques': '64', 'Hautes-Pyrénées': '65',
+        'Pyrénées-Orientales': '66', 'Bas-Rhin': '67', 'Haut-Rhin': '68',
+        'Rhône': '69', 'Haute-Saône': '70', 'Saône-et-Loire': '71', 'Sarthe': '72',
+        'Savoie': '73', 'Haute-Savoie': '74', 'Paris': '75',
+        'Seine-Maritime': '76', 'Seine-et-Marne': '77', 'Yvelines': '78',
+        'Deux-Sèvres': '79', 'Somme': '80', 'Tarn': '81', 'Tarn-et-Garonne': '82',
+        'Var': '83', 'Vaucluse': '84', 'Vendée': '85', 'Vienne': '86',
+        'Haute-Vienne': '87', 'Vosges': '88', 'Yonne': '89',
+        'Territoire de Belfort': '90', 'Essonne': '91', 'Hauts-de-Seine': '92',
+        'Seine-Saint-Denis': '93', 'Val-de-Marne': '94',
+        "Val-d'Oise": '95', "Val-d\u2019Oise": '95',
+        'Guadeloupe': '971', 'Martinique': '972', 'Guyane': '973',
+        'La Réunion': '974', 'Mayotte': '976',
+        'Nouvelle Calédonie': '988', 'Polynésie Française': '987',
+        'Saint-Barthélémy': '977', 'Saint-Martin': '978',
+        'St-Pierre-et-Miquelon': '975',
+    };
+
     // ── Marker icon factory ──────────────────────────────────────────
     function makeIcon(typeId) {
         var cfg = TYPE_CONFIG[typeId] || TYPE_CONFIG[4];
@@ -136,10 +183,11 @@
         this.wrapper = document.getElementById(mapId + '-wrapper');
 
         // School detail caches.
-        // _schoolCache: id → full school object, pre-fetched when result < 1500.
-        // _markerById:  id → L.marker, rebuilt on each full render.
         this._schoolCache = {};
         this._markerById = {};
+
+        // Circo zone layer.
+        this._circoLayer = null;
 
         this.init();
     };
@@ -182,6 +230,10 @@
 
         // Legend.
         this.addLegend();
+
+        // Create a custom map pane for circo zones so they render below markers.
+        this.map.createPane('circoPane');
+        this.map.getPane('circoPane').style.zIndex = 350;
 
         // Cluster group — always created so it can serve as a safety net
         // when the result set is large, even if config.cluster is false.
@@ -235,6 +287,11 @@
 
             circoReady.then(function () {
                 self.loadMarkers(hasDefault);
+                // Load circo zones if a département is pre-configured.
+                if (self.config.showCircoZones !== false &&
+                    self.config.departement && self.config.departement !== 'all') {
+                    self.loadCircoZones(self.config.departement);
+                }
             });
         });
 
@@ -656,6 +713,7 @@
                 }
                 // Hide circonscription dropdown when switching to académie.
                 self.loadCirconscriptions('all');
+                self.removeCircoZones();
                 self.loadMarkers(true);
             });
         }
@@ -667,6 +725,10 @@
                 }
                 // Load circonscriptions for the selected département.
                 self.loadCirconscriptions(deptSelect.value);
+                // Load / remove circo zones.
+                if (self.config.showCircoZones !== false) {
+                    self.loadCircoZones(deptSelect.value);
+                }
                 self.loadMarkers(true);
             });
         }
@@ -885,6 +947,128 @@
         var d = document.createElement('div');
         d.appendChild(document.createTextNode(str));
         return d.innerHTML;
+    };
+
+    // ── Circo zone overlay ───────────────────────────────────────────
+    /**
+     * Load commune contours for a département and colour them by circo.
+     * @param {string} dept  Département label, e.g. "Haute-Garonne".
+     */
+    FSM_Map.prototype.loadCircoZones = function (dept) {
+        var self = this;
+        this.removeCircoZones();
+
+        if (!dept || dept === 'all') return;
+
+        var deptCode = DEPT_CODES[dept];
+        if (!deptCode) {
+            console.warn('[FSM] No code for département:', dept);
+            return;
+        }
+
+        // Fetch in parallel: commune→circo mapping + GeoJSON contours.
+        var mapUrl = buildUrl(this.config.restUrl, 'commune-circo-map', { departement: dept });
+        var geoUrl = 'https://geo.api.gouv.fr/departements/' + deptCode + '/communes?format=geojson&geometry=contour';
+
+        Promise.all([
+            fetch(mapUrl, { headers: { 'X-WP-Nonce': this.config.nonce } }).then(jsonResponse),
+            fetch(geoUrl).then(jsonResponse),
+        ])
+            .then(function (results) {
+                var communeCircoMap = results[0]; // { "31001": "IEN Toulouse Nord", ... }
+                var geoData = results[1];          // GeoJSON FeatureCollection
+
+                if (!geoData || !geoData.features) return;
+
+                // ── Fill gaps: assign unmapped communes to nearest mapped commune ──
+                // Compute centroids for all features.
+                var centroids = {};
+                geoData.features.forEach(function (f) {
+                    var coords = f.geometry.type === 'MultiPolygon'
+                        ? f.geometry.coordinates[0][0]
+                        : (f.geometry.type === 'Polygon' ? f.geometry.coordinates[0] : []);
+                    if (!coords.length) return;
+                    var sumLng = 0, sumLat = 0;
+                    coords.forEach(function (c) { sumLng += c[0]; sumLat += c[1]; });
+                    centroids[f.properties.code] = [sumLng / coords.length, sumLat / coords.length];
+                });
+
+                // Collect mapped codes with their centroids.
+                var mappedCentroids = [];
+                Object.keys(communeCircoMap).forEach(function (code) {
+                    if (centroids[code]) {
+                        mappedCentroids.push({ code: code, c: centroids[code], circo: communeCircoMap[code] });
+                    }
+                });
+
+                // For each unmapped commune, find the nearest mapped commune.
+                if (mappedCentroids.length > 0) {
+                    geoData.features.forEach(function (f) {
+                        var code = f.properties.code;
+                        if (communeCircoMap[code] || !centroids[code]) return;
+                        var pt = centroids[code];
+                        var bestDist = Infinity, bestCirco = null;
+                        mappedCentroids.forEach(function (m) {
+                            var dx = pt[0] - m.c[0], dy = pt[1] - m.c[1];
+                            var d = dx * dx + dy * dy;
+                            if (d < bestDist) { bestDist = d; bestCirco = m.circo; }
+                        });
+                        if (bestCirco) communeCircoMap[code] = bestCirco;
+                    });
+                }
+
+                // Build a circo→colour index.
+                var circoNames = [];
+                Object.keys(communeCircoMap).forEach(function (code) {
+                    var name = communeCircoMap[code];
+                    if (circoNames.indexOf(name) === -1) circoNames.push(name);
+                });
+                circoNames.sort();
+                var circoColorMap = {};
+                circoNames.forEach(function (name, i) {
+                    circoColorMap[name] = CIRCO_COLORS[i % CIRCO_COLORS.length];
+                });
+
+                // Build the GeoJSON layer.
+                self._circoLayer = L.geoJSON(geoData, {
+                    pane: 'circoPane',
+                    style: function (feature) {
+                        var code = feature.properties.code;
+                        var circo = communeCircoMap[code];
+                        var color = circo ? circoColorMap[circo] : '#cccccc';
+                        return {
+                            color: color,
+                            weight: 1,
+                            opacity: circo ? 0.5 : 0.15,
+                            fillColor: color,
+                            fillOpacity: circo ? 0.18 : 0.03,
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        var code = feature.properties.code;
+                        var circo = communeCircoMap[code];
+                        if (circo) {
+                            layer.bindTooltip(cleanNomCirconscription(circo), {
+                                sticky: true,
+                                className: 'fsm-circo-tooltip',
+                            });
+                        }
+                    },
+                }).addTo(self.map);
+            })
+            .catch(function (err) {
+                console.warn('[FSM] Failed to load circo zones', err);
+            });
+    };
+
+    /**
+     * Remove the current circo zone overlay from the map.
+     */
+    FSM_Map.prototype.removeCircoZones = function () {
+        if (this._circoLayer) {
+            this.map.removeLayer(this._circoLayer);
+            this._circoLayer = null;
+        }
     };
 
 })();

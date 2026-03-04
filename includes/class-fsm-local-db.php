@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Local database for French schools map data.
  *
@@ -26,7 +27,7 @@ class FSM_Local_DB
     /**
      * CSV export URL – all fields we need including lat/lng.
      */
-    const EXPORT_URL = 'https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/exports/csv?select=identifiant_de_l_etablissement%2Cnom_etablissement%2Ctype_etablissement%2Clibelle_nature%2Cstatut_public_prive%2Cadresse_1%2Ccode_postal%2Cnom_commune%2Clibelle_departement%2Ctelephone%2Cmail%2Cappartenance_education_prioritaire%2Cnom_circonscription%2Ccode_circonscription%2Clatitude%2Clongitude&delimiter=%3B';
+    const EXPORT_URL = 'https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/fr-en-annuaire-education/exports/csv?select=identifiant_de_l_etablissement%2Cnom_etablissement%2Ctype_etablissement%2Clibelle_nature%2Cstatut_public_prive%2Cadresse_1%2Ccode_postal%2Cnom_commune%2Ccode_commune%2Clibelle_departement%2Ctelephone%2Cmail%2Cappartenance_education_prioritaire%2Cnom_circonscription%2Ccode_circonscription%2Clatitude%2Clongitude&delimiter=%3B';
 
     // ──────────────────────────────────────────────────────────────────
     // Table management
@@ -54,6 +55,7 @@ class FSM_Local_DB
             adresse VARCHAR(255) NOT NULL DEFAULT '',
             code_postal VARCHAR(10) NOT NULL DEFAULT '',
             nom_commune VARCHAR(100) NOT NULL DEFAULT '',
+            code_commune VARCHAR(10) NOT NULL DEFAULT '',
             libelle_departement VARCHAR(100) NOT NULL DEFAULT '',
             telephone VARCHAR(30) NOT NULL DEFAULT '',
             mail VARCHAR(255) NOT NULL DEFAULT '',
@@ -111,6 +113,11 @@ class FSM_Local_DB
         }
         wp_raise_memory_limit('admin');
 
+        // 0. Ensure DB schema is up-to-date (adds any new columns via dbDelta).
+        // This is critical because import_csv uses CREATE TABLE … LIKE which
+        // copies the current schema; missing columns would cause silent failures.
+        self::create_table();
+
         // 1. Download CSV.
         $tmp_file = download_url(self::EXPORT_URL, 300);
         if (is_wp_error($tmp_file)) {
@@ -135,6 +142,10 @@ class FSM_Local_DB
 
         // 4. Invalidate ALL marker caches.
         self::clear_marker_caches();
+
+        // 5. Reschedule cron so next sync is 1 month from now.
+        self::unschedule_sync();
+        wp_schedule_event(time() + 30 * DAY_IN_SECONDS, 'fsm_monthly', self::CRON_HOOK);
 
         self::log('Sync completed. Records: ' . $result);
         return true;
@@ -226,6 +237,7 @@ class FSM_Local_DB
             'adresse'             => array('adresse_1', 'adresse 1'),
             'code_postal'         => array('code_postal', 'code postal'),
             'nom_commune'         => array('nom_commune', 'nom commune'),
+            'code_commune'        => array('code_commune', 'code commune'),
             'libelle_departement' => array('libelle_departement', 'libelle departement', 'libellé département'),
             'telephone'           => array('telephone', 'téléphone'),
             'mail'                => array('mail'),
@@ -564,6 +576,51 @@ class FSM_Local_DB
     }
 
     /**
+     * Get mapping of code_commune → nom_circonscription for a département.
+     *
+     * Used by the frontend to color commune polygons by circonscription.
+     *
+     * @param string $departement Département label.
+     * @return array Associative array { code_commune => nom_circonscription }.
+     */
+    public static function get_commune_circo_map($departement)
+    {
+        global $wpdb;
+        $table = self::table_name();
+
+        $cache_key = 'fsm_comcirco_' . md5($departement);
+        $cached    = get_transient($cache_key);
+        if ($cached !== false) {
+            return $cached;
+        }
+
+        // Pick the most common circonscription per commune (majority wins).
+        // A commune may have schools in different circos; we want the dominant one.
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT code_commune, nom_circonscription, COUNT(*) as cnt
+             FROM {$table}
+             WHERE libelle_departement = %s
+               AND code_commune != ''
+               AND nom_circonscription != ''
+               AND type_etablissement = 'Ecole'
+             GROUP BY code_commune, nom_circonscription
+             ORDER BY code_commune, cnt DESC",
+            $departement
+        ), ARRAY_A);
+
+        $map = array();
+        foreach ($rows as $row) {
+            // First row per commune has the highest count (ORDER BY cnt DESC).
+            if (!isset($map[$row['code_commune']])) {
+                $map[$row['code_commune']] = $row['nom_circonscription'];
+            }
+        }
+
+        set_transient($cache_key, $map, DAY_IN_SECONDS);
+        return $map;
+    }
+
+    /**
      * Get statistics.
      *
      * @return array
@@ -606,6 +663,9 @@ class FSM_Local_DB
         delete_transient('fsm_departments');
         $wpdb->query(
             "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_fsm_circo_%' OR option_name LIKE '_transient_timeout_fsm_circo_%'"
+        );
+        $wpdb->query(
+            "DELETE FROM {$wpdb->options} WHERE option_name LIKE '_transient_fsm_comcirco_%' OR option_name LIKE '_transient_timeout_fsm_comcirco_%'"
         );
     }
 

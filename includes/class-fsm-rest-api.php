@@ -122,6 +122,20 @@ class FSM_REST_API
             ),
         ));
 
+        // GET /fsm/v1/commune-circo-map – commune→circo mapping for a département.
+        register_rest_route(self::REST_NAMESPACE, '/commune-circo-map', array(
+            'methods'             => WP_REST_Server::READABLE,
+            'callback'            => array(__CLASS__, 'get_commune_circo_map'),
+            'permission_callback' => '__return_true',
+            'args'                => array(
+                'departement' => array(
+                    'type'              => 'string',
+                    'required'          => true,
+                    'sanitize_callback' => 'sanitize_text_field',
+                ),
+            ),
+        ));
+
         // GET /fsm/v1/stats – global stats.
         register_rest_route(self::REST_NAMESPACE, '/stats', array(
             'methods'             => WP_REST_Server::READABLE,
@@ -285,6 +299,26 @@ class FSM_REST_API
         set_transient($cache_key, $circos, DAY_IN_SECONDS);
 
         return new WP_REST_Response($circos, 200);
+    }
+
+    /**
+     * Return commune → circonscription mapping for a given département.
+     */
+    public static function get_commune_circo_map(WP_REST_Request $request)
+    {
+        $dept = $request->get_param('departement');
+        if (empty($dept)) {
+            return new WP_REST_Response(new \stdClass(), 200);
+        }
+
+        $map = FSM_Local_DB::get_commune_circo_map($dept);
+
+        // Return as object so JSON encodes as { "31001": "...", ... } not [].
+        return new WP_REST_Response(
+            empty($map) ? new \stdClass() : (object) $map,
+            200,
+            array('Cache-Control' => 'public, max-age=86400')
+        );
     }
 
     /**

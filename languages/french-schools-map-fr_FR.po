@@ -4,10 +4,10 @@
 # Guilamu <guilamu@github.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.1.2\n"
+"Project-Id-Version: French Schools Map 1.2.0\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
-"POT-Creation-Date: 2026-03-01T10:32:00+01:00\n"
-"PO-Revision-Date: 2026-03-02 16:32+0100\n"
+"POT-Creation-Date: 2026-03-04T09:00:00+01:00\n"
+"PO-Revision-Date: 2026-03-04 09:16+0100\n"
 "Last-Translator: Guilamu <guilamu@github.com>\n"
 "Language-Team: French (France)\n"
 "Language: fr_FR\n"
@@ -215,6 +215,54 @@ msgstr ""
 "l'académie est ignorée."
 
 #: includes/class-fsm-admin.php
+msgid "Default types"
+msgstr "Types par défaut"
+
+#: includes/class-fsm-admin.php
+msgid "All (schools + middle + high)"
+msgstr "Tous (écoles + collèges + lycées)"
+
+#: includes/class-fsm-admin.php
+msgid "Schools only"
+msgstr "Écoles uniquement"
+
+#: includes/class-fsm-admin.php
+msgid "Middle schools only"
+msgstr "Collèges uniquement"
+
+#: includes/class-fsm-admin.php
+msgid "High schools only"
+msgstr "Lycées uniquement"
+
+#: includes/class-fsm-admin.php
+msgid "Schools + Middle schools"
+msgstr "Écoles + Collèges"
+
+#: includes/class-fsm-admin.php
+msgid "Middle + High schools"
+msgstr "Collèges + Lycées"
+
+#: includes/class-fsm-admin.php
+msgid "Default status"
+msgstr "Statut par défaut"
+
+#: includes/class-fsm-admin.php
+msgid "All (public + private)"
+msgstr "Tous (public + privé)"
+
+#: includes/class-fsm-admin.php
+msgid "Public only"
+msgstr "Public uniquement"
+
+#: includes/class-fsm-admin.php
+msgid "Private only"
+msgstr "Privé uniquement"
+
+#: includes/class-fsm-admin.php
+msgid "Default priority education"
+msgstr "Éducation prioritaire par défaut"
+
+#: includes/class-fsm-admin.php
 msgid "Save settings"
 msgstr "Enregistrer les paramètres"
 
@@ -349,3 +397,7 @@ msgstr "Éducation prioritaire"
 #: french-schools-map.php (shortcode HTML)
 msgid "Locate me"
 msgstr "Me localiser"
+
+#: french-schools-map.php (shortcode HTML)
+msgid "Circumscription"
+msgstr "Circonscription"

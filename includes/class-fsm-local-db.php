@@ -594,25 +594,48 @@ class FSM_Local_DB
             return $cached;
         }
 
-        // Pick the most common circonscription per commune (majority wins).
-        // A commune may have schools in different circos; we want the dominant one.
+        // Retrieve ALL circonscriptions per commune with average school
+        // positions.  A commune may span multiple circos (e.g. Saint-Denis
+        // has 3); the frontend needs the centroids to split the polygon.
         $rows = $wpdb->get_results($wpdb->prepare(
-            "SELECT code_commune, nom_circonscription, COUNT(*) as cnt
+            "SELECT code_commune, nom_circonscription,
+                    AVG(latitude) AS avg_lat, AVG(longitude) AS avg_lng,
+                    COUNT(*) AS cnt
              FROM {$table}
              WHERE libelle_departement = %s
                AND code_commune != ''
                AND nom_circonscription != ''
                AND type_etablissement = 'Ecole'
+               AND latitude IS NOT NULL
+               AND longitude IS NOT NULL
              GROUP BY code_commune, nom_circonscription
              ORDER BY code_commune, cnt DESC",
             $departement
         ), ARRAY_A);
 
-        $map = array();
+        // Group by commune: single-circo → string, multi-circo → array of
+        // { circo, lat, lng } so the frontend can build Voronoi sub-zones.
+        $grouped = array();
         foreach ($rows as $row) {
-            // First row per commune has the highest count (ORDER BY cnt DESC).
-            if (!isset($map[$row['code_commune']])) {
-                $map[$row['code_commune']] = $row['nom_circonscription'];
+            $code = $row['code_commune'];
+            if (!isset($grouped[$code])) {
+                $grouped[$code] = array();
+            }
+            $grouped[$code][] = array(
+                'circo' => $row['nom_circonscription'],
+                'lat'   => (float) $row['avg_lat'],
+                'lng'   => (float) $row['avg_lng'],
+            );
+        }
+
+        $map = array();
+        foreach ($grouped as $code => $circos) {
+            if (count($circos) === 1) {
+                // Single circo: keep simple string value for backward compat.
+                $map[$code] = $circos[0]['circo'];
+            } else {
+                // Multi-circo: array with centroid positions for polygon splitting.
+                $map[$code] = $circos;
             }
         }
 

@@ -228,6 +228,25 @@
             maxZoom: this.config.maxZoom,
         }).addTo(this.map);
 
+        // Public-transport overlay — IDFM (Île-de-France Mobilités).
+        // Shows metro / RER / tramway / train lines and stations using
+        // GeoJSON data from the open Explore API v2.  Rendered in a
+        // dedicated pane between the base tiles and circo zones / markers.
+        this.map.createPane('transportPane');
+        this.map.getPane('transportPane').style.zIndex = 320;
+        this.map.createPane('transportStationPane');
+        this.map.getPane('transportStationPane').style.zIndex = 450;
+
+        this._transportLinesLayer = null;   // L.geoJSON for line traces
+        this._transportStationsLayer = null; // L.layerGroup for station markers
+        this._transportDataLoaded = false;   // true once IDFM data has been fetched
+        this._transportVisible = false;
+
+        if (this.config.showTransport) {
+            this._transportVisible = true;
+            this._loadTransportData();
+        }
+
         // Legend.
         this.addLegend();
 
@@ -260,6 +279,9 @@
         // Bind filters.
         this.bindFilters();
 
+
+        // Bind transport toggle button.
+        this.bindTransportToggle();
 
         // Bind locate button.
         this.bindLocate();
@@ -866,6 +888,222 @@
     };
 
 
+    // ── Transport layer toggle ────────────────────────────────────────
+    FSM_Map.prototype.bindTransportToggle = function () {
+        var self = this;
+        var btn = this.wrapper.querySelector('.fsm-btn-transport');
+        if (!btn) return;
+
+        // Sync button visual state on init.
+        if (this._transportVisible) btn.classList.add('fsm-btn-active');
+
+        btn.addEventListener('click', function () {
+            if (self._transportVisible) {
+                self._hideTransportLayers();
+                self._transportVisible = false;
+                btn.classList.remove('fsm-btn-active');
+                btn.title = i18n.showTransport || 'Show public transport';
+            } else {
+                self._transportVisible = true;
+                btn.classList.add('fsm-btn-active');
+                btn.title = i18n.hideTransport || 'Hide public transport';
+                if (!self._transportDataLoaded) {
+                    self._loadTransportData();
+                } else {
+                    self._showTransportLayers();
+                }
+            }
+        });
+    };
+
+    // ── Hide transport GeoJSON layers ─────────────────────────────────
+    FSM_Map.prototype._hideTransportLayers = function () {
+        if (this._transportLinesLayer) this.map.removeLayer(this._transportLinesLayer);
+        if (this._transportStationsLayer) this.map.removeLayer(this._transportStationsLayer);
+    };
+
+    // ── Show transport GeoJSON layers ─────────────────────────────────
+    FSM_Map.prototype._showTransportLayers = function () {
+        if (this._transportLinesLayer) this._transportLinesLayer.addTo(this.map);
+        if (this._transportStationsLayer) this._transportStationsLayer.addTo(this.map);
+    };
+
+    // ── Mode → colour fallback (when colourweb_hexa is missing) ──────
+    var TRANSPORT_MODE_COLORS = {
+        METRO:   '#003CA6',
+        RER:     '#18B04B',
+        TRAMWAY: '#000000',
+        TRAIN:   '#7B4339',
+        NAVETTE: '#999999',
+    };
+
+    // ── Mode → readable label ─────────────────────────────────────────
+    var TRANSPORT_MODE_LABELS = {
+        METRO:   'Métro',
+        RER:     'RER',
+        TRAMWAY: 'Tramway',
+        TRAIN:   'Transilien / TER',
+        NAVETTE: 'Navette / Val',
+    };
+
+    // ── Load GeoJSON data from IDFM Explore API v2 ───────────────────
+    // Loads both line traces and station points, then adds them to the
+    // map.  Data is fetched once and cached; subsequent toggles simply
+    // add / remove the existing layers.
+    FSM_Map.prototype._loadTransportData = function () {
+        var self = this;
+        if (this._transportDataLoaded) {
+            this._showTransportLayers();
+            return;
+        }
+
+        var baseUrl = 'https://data.iledefrance-mobilites.fr/api/explore/v2.1/catalog/datasets/';
+
+        // ── 1. Line traces (Métro, RER, Tramway, Train, Navette) ──────
+        var linesUrl = baseUrl
+            + 'traces-du-reseau-ferre-idf/records'
+            + '?limit=100&offset=0'
+            + '&select=geo_shape,mode,indice_lig,colourweb_hexa,res_com';
+
+        // ── 2. Station points ─────────────────────────────────────────
+        var stationsUrl = baseUrl
+            + 'emplacement-des-gares-idf/records'
+            + '?limit=100&offset=0'
+            + '&select=geo_point_2d,nom_gares,mode,indice_lig';
+
+        // Fetch all line records (paginated at 100 per page).
+        var allLines = [];
+        var allStations = [];
+
+        function fetchAllPages(url, accumulator) {
+            return fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+                if (data.results) {
+                    accumulator.push.apply(accumulator, data.results);
+                }
+                // If there are more pages, fetch the next one.
+                if (data.results && data.results.length === 100 && accumulator.length < data.total_count) {
+                    var nextUrl = url.replace(/offset=\d+/, 'offset=' + accumulator.length);
+                    return fetchAllPages(nextUrl, accumulator);
+                }
+                return accumulator;
+            });
+        }
+
+        Promise.all([
+            fetchAllPages(linesUrl, allLines),
+            fetchAllPages(stationsUrl, allStations),
+        ]).then(function (results) {
+            var lines = results[0];
+            var stations = results[1];
+
+            self._transportDataLoaded = true;
+
+            // ── Build line GeoJSON features ───────────────────────────
+            var lineFeatures = [];
+            for (var i = 0; i < lines.length; i++) {
+                var rec = lines[i];
+                if (!rec.geo_shape || !rec.geo_shape.geometry) continue;
+                lineFeatures.push({
+                    type: 'Feature',
+                    geometry: rec.geo_shape.geometry,
+                    properties: {
+                        mode: rec.mode || '',
+                        line: rec.indice_lig || '',
+                        color: rec.colourweb_hexa ? '#' + rec.colourweb_hexa : null,
+                        name: rec.res_com || '',
+                    },
+                });
+            }
+            var linesGeoJSON = { type: 'FeatureCollection', features: lineFeatures };
+
+            // Create Leaflet GeoJSON layer for lines.
+            self._transportLinesLayer = L.geoJSON(linesGeoJSON, {
+                pane: 'transportPane',
+                style: function (feature) {
+                    var p = feature.properties;
+                    var color = p.color || TRANSPORT_MODE_COLORS[p.mode] || '#666';
+                    var weight = (p.mode === 'METRO') ? 4
+                        : (p.mode === 'RER')     ? 3.5
+                        : (p.mode === 'TRAMWAY')  ? 3
+                        : 2.5;
+                    return {
+                        color: color,
+                        weight: weight,
+                        opacity: 0.85,
+                        lineJoin: 'round',
+                        lineCap: 'round',
+                    };
+                },
+                onEachFeature: function (feature, layer) {
+                    var p = feature.properties;
+                    var modeLabel = TRANSPORT_MODE_LABELS[p.mode] || p.mode;
+                    layer.bindTooltip(
+                        '<strong>' + modeLabel + '</strong>' + (p.line ? ' ' + p.line : ''),
+                        { sticky: true, className: 'fsm-transport-tooltip' }
+                    );
+                },
+                attribution: '&copy; <a href="https://data.iledefrance-mobilites.fr/">Île-de-France Mobilités</a> — Licence Ouverte',
+            });
+
+            // ── Build station markers ─────────────────────────────────
+            // The per-line dataset has one record per (station × line).
+            // We group by station name so each physical station gets a
+            // single marker whose tooltip lists every line serving it.
+            var stationMap = {};  // key = nom_gares → { lat, lon, lines: [{mode,line}] }
+            for (var j = 0; j < stations.length; j++) {
+                var st = stations[j];
+                if (!st.geo_point_2d || !st.nom_gares) continue;
+                var key = st.nom_gares;
+                if (!stationMap[key]) {
+                    stationMap[key] = {
+                        lat: st.geo_point_2d.lat,
+                        lon: st.geo_point_2d.lon,
+                        lines: [],
+                    };
+                }
+                var modeUp = (st.mode || '').toUpperCase();
+                var lineLabel = (TRANSPORT_MODE_LABELS[modeUp] || st.mode || '')
+                    + (st.indice_lig ? ' ' + st.indice_lig : '');
+                // Avoid duplicates (same label already added).
+                if (stationMap[key].lines.indexOf(lineLabel) === -1) {
+                    stationMap[key].lines.push(lineLabel);
+                }
+                // Keep the first mode for the dot colour.
+                if (!stationMap[key].mode) stationMap[key].mode = modeUp;
+            }
+
+            self._transportStationsLayer = L.layerGroup([], { pane: 'transportStationPane' });
+            var stationNames = Object.keys(stationMap);
+            for (var k = 0; k < stationNames.length; k++) {
+                var info = stationMap[stationNames[k]];
+                var mColor = TRANSPORT_MODE_COLORS[info.mode] || '#666';
+                var marker = L.circleMarker(
+                    [info.lat, info.lon],
+                    {
+                        pane: 'transportStationPane',
+                        radius: 4,
+                        color: '#fff',
+                        weight: 1.5,
+                        fillColor: mColor,
+                        fillOpacity: 0.9,
+                    }
+                );
+                marker.bindTooltip(
+                    '<strong>' + stationNames[k] + '</strong><br>' + info.lines.join(', '),
+                    { className: 'fsm-transport-tooltip' }
+                );
+                self._transportStationsLayer.addLayer(marker);
+            }
+
+            // Add to map if transport is still toggled on.
+            if (self._transportVisible) {
+                self._showTransportLayers();
+            }
+        }).catch(function (err) {
+            console.warn('FSM: failed to load transport data from IDFM', err);
+        });
+    };
+
     // ── Geolocation ──────────────────────────────────────────────────
     FSM_Map.prototype.bindLocate = function () {
         var self = this;
@@ -949,6 +1187,99 @@
         return d.innerHTML;
     };
 
+    // ── Polygon clipping helpers (Voronoi sub-division) ─────────────
+    // Used to split a commune polygon into sub-zones when it contains
+    // multiple circonscriptions.
+
+    /**
+     * Sutherland-Hodgman: clip polygon to the half-plane
+     *   (p - M) · N >= 0
+     * where M = (mx,my), N = (nx,ny).
+     * @param {number[][]} poly  Array of [x,y] vertices (open ring).
+     * @returns {number[][]} Clipped polygon vertices.
+     */
+    function clipPolygonByHalfPlane(poly, mx, my, nx, ny) {
+        if (!poly.length) return [];
+        var output = [];
+        var n = poly.length;
+
+        for (var i = 0; i < n; i++) {
+            var cur = poly[i];
+            var nxt = poly[(i + 1) % n];
+
+            var dCur = (cur[0] - mx) * nx + (cur[1] - my) * ny;
+            var dNxt = (nxt[0] - mx) * nx + (nxt[1] - my) * ny;
+
+            if (dCur >= 0) {
+                output.push(cur);
+                if (dNxt < 0) {
+                    var t = dCur / (dCur - dNxt);
+                    output.push([
+                        cur[0] + t * (nxt[0] - cur[0]),
+                        cur[1] + t * (nxt[1] - cur[1]),
+                    ]);
+                }
+            } else if (dNxt >= 0) {
+                var t = dCur / (dCur - dNxt);
+                output.push([
+                    cur[0] + t * (nxt[0] - cur[0]),
+                    cur[1] + t * (nxt[1] - cur[1]),
+                ]);
+            }
+        }
+        return output;
+    }
+
+    /**
+     * Compute the Voronoi cell for centroid `idx` among `centroids`,
+     * clipped to `polygon`.
+     * Each centroid is [lng, lat] (GeoJSON order).
+     * @returns {number[][]} polygon vertices (may be empty).
+     */
+    function voronoiCell(polygon, centroids, idx) {
+        var cell = polygon.slice();
+        var ci = centroids[idx];
+
+        for (var j = 0; j < centroids.length; j++) {
+            if (j === idx) continue;
+            var cj = centroids[j];
+
+            // Midpoint (perpendicular bisector passes through it).
+            var mx = (ci[0] + cj[0]) / 2;
+            var my = (ci[1] + cj[1]) / 2;
+
+            // Normal pointing toward ci.
+            var nx = ci[0] - cj[0];
+            var ny = ci[1] - cj[1];
+
+            cell = clipPolygonByHalfPlane(cell, mx, my, nx, ny);
+            if (!cell.length) break;
+        }
+        return cell;
+    }
+
+    /**
+     * Extract the outer ring of a GeoJSON geometry as an array of [lng, lat].
+     * Handles Polygon and MultiPolygon (uses largest ring).
+     */
+    function extractOuterRing(geometry) {
+        if (geometry.type === 'Polygon') {
+            return geometry.coordinates[0];
+        }
+        if (geometry.type === 'MultiPolygon') {
+            // Pick the ring with the most vertices (largest polygon).
+            var best = null, bestLen = 0;
+            geometry.coordinates.forEach(function (poly) {
+                if (poly[0].length > bestLen) {
+                    bestLen = poly[0].length;
+                    best = poly[0];
+                }
+            });
+            return best || [];
+        }
+        return [];
+    }
+
     // ── Circo zone overlay ───────────────────────────────────────────
     /**
      * Load commune contours for a département and colour them by circo.
@@ -975,14 +1306,21 @@
             fetch(geoUrl).then(jsonResponse),
         ])
             .then(function (results) {
-                var communeCircoMap = results[0]; // { "31001": "IEN Toulouse Nord", ... }
+                var communeCircoMap = results[0]; // { code: "circoName" | [{circo,lat,lng}, ...] }
                 var geoData = results[1];          // GeoJSON FeatureCollection
 
                 if (!geoData || !geoData.features) return;
 
+                // ── Helper: get the primary circo name for a commune entry ──
+                function primaryCirco(entry) {
+                    if (typeof entry === 'string') return entry;
+                    if (Array.isArray(entry) && entry.length) return entry[0].circo;
+                    return null;
+                }
+
                 // ── Fill gaps: assign unmapped communes to nearest mapped commune ──
-                // Compute centroids for all features.
-                var centroids = {};
+                // Compute centroids for all GeoJSON features.
+                var geoCentroids = {};
                 geoData.features.forEach(function (f) {
                     var coords = f.geometry.type === 'MultiPolygon'
                         ? f.geometry.coordinates[0][0]
@@ -990,23 +1328,27 @@
                     if (!coords.length) return;
                     var sumLng = 0, sumLat = 0;
                     coords.forEach(function (c) { sumLng += c[0]; sumLat += c[1]; });
-                    centroids[f.properties.code] = [sumLng / coords.length, sumLat / coords.length];
+                    geoCentroids[f.properties.code] = [sumLng / coords.length, sumLat / coords.length];
                 });
 
-                // Collect mapped codes with their centroids.
+                // Collect mapped codes with their geographic centroids.
                 var mappedCentroids = [];
                 Object.keys(communeCircoMap).forEach(function (code) {
-                    if (centroids[code]) {
-                        mappedCentroids.push({ code: code, c: centroids[code], circo: communeCircoMap[code] });
+                    if (geoCentroids[code]) {
+                        mappedCentroids.push({
+                            code: code,
+                            c: geoCentroids[code],
+                            circo: primaryCirco(communeCircoMap[code]),
+                        });
                     }
                 });
 
-                // For each unmapped commune, find the nearest mapped commune.
+                // For each unmapped commune, assign to nearest mapped commune's primary circo.
                 if (mappedCentroids.length > 0) {
                     geoData.features.forEach(function (f) {
                         var code = f.properties.code;
-                        if (communeCircoMap[code] || !centroids[code]) return;
-                        var pt = centroids[code];
+                        if (communeCircoMap[code] || !geoCentroids[code]) return;
+                        var pt = geoCentroids[code];
                         var bestDist = Infinity, bestCirco = null;
                         mappedCentroids.forEach(function (m) {
                             var dx = pt[0] - m.c[0], dy = pt[1] - m.c[1];
@@ -1017,11 +1359,17 @@
                     });
                 }
 
-                // Build a circo→colour index.
+                // ── Build a global circo → colour index ──
                 var circoNames = [];
                 Object.keys(communeCircoMap).forEach(function (code) {
-                    var name = communeCircoMap[code];
-                    if (circoNames.indexOf(name) === -1) circoNames.push(name);
+                    var entry = communeCircoMap[code];
+                    if (typeof entry === 'string') {
+                        if (circoNames.indexOf(entry) === -1) circoNames.push(entry);
+                    } else if (Array.isArray(entry)) {
+                        entry.forEach(function (e) {
+                            if (circoNames.indexOf(e.circo) === -1) circoNames.push(e.circo);
+                        });
+                    }
                 });
                 circoNames.sort();
                 var circoColorMap = {};
@@ -1029,12 +1377,68 @@
                     circoColorMap[name] = CIRCO_COLORS[i % CIRCO_COLORS.length];
                 });
 
-                // Build the GeoJSON layer.
-                self._circoLayer = L.geoJSON(geoData, {
+                // ── Build GeoJSON features ──
+                // For multi-circo communes we split the polygon into Voronoi
+                // sub-zones (one per circo).  Single-circo communes keep the
+                // original polygon.
+                var features = [];
+
+                geoData.features.forEach(function (f) {
+                    var code = f.properties.code;
+                    var entry = communeCircoMap[code];
+
+                    if (!entry) {
+                        // Unmapped — keep original feature with no circo.
+                        features.push({ type: 'Feature', properties: { code: code, circo: null }, geometry: f.geometry });
+                        return;
+                    }
+
+                    // Single circo (string) — keep the original polygon.
+                    if (typeof entry === 'string') {
+                        features.push({ type: 'Feature', properties: { code: code, circo: entry }, geometry: f.geometry });
+                        return;
+                    }
+
+                    // Multi-circo (array) — split the polygon into Voronoi sub-zones.
+                    var outerRing = extractOuterRing(f.geometry);
+                    if (!outerRing || outerRing.length < 3) {
+                        // Fallback: use primary circo.
+                        features.push({ type: 'Feature', properties: { code: code, circo: entry[0].circo }, geometry: f.geometry });
+                        return;
+                    }
+
+                    // Remove the closing vertex if it duplicates the first (GeoJSON convention).
+                    var ring = outerRing.slice();
+                    var last = ring[ring.length - 1];
+                    if (ring.length > 1 && last[0] === ring[0][0] && last[1] === ring[0][1]) {
+                        ring.pop();
+                    }
+
+                    // Centroids in [lng, lat] (GeoJSON order).
+                    var circoCentroids = entry.map(function (e) { return [e.lng, e.lat]; });
+
+                    entry.forEach(function (e, idx) {
+                        var cell = voronoiCell(ring, circoCentroids, idx);
+                        if (cell.length >= 3) {
+                            // Close the ring for GeoJSON.
+                            var closed = cell.slice();
+                            closed.push(closed[0]);
+                            features.push({
+                                type: 'Feature',
+                                properties: { code: code, circo: e.circo },
+                                geometry: { type: 'Polygon', coordinates: [closed] },
+                            });
+                        }
+                    });
+                });
+
+                var splitGeoData = { type: 'FeatureCollection', features: features };
+
+                // Build the Leaflet GeoJSON layer.
+                self._circoLayer = L.geoJSON(splitGeoData, {
                     pane: 'circoPane',
                     style: function (feature) {
-                        var code = feature.properties.code;
-                        var circo = communeCircoMap[code];
+                        var circo = feature.properties.circo;
                         var color = circo ? circoColorMap[circo] : '#cccccc';
                         return {
                             color: color,
@@ -1045,8 +1449,7 @@
                         };
                     },
                     onEachFeature: function (feature, layer) {
-                        var code = feature.properties.code;
-                        var circo = communeCircoMap[code];
+                        var circo = feature.properties.circo;
                         if (circo) {
                             layer.bindTooltip(cleanNomCirconscription(circo), {
                                 sticky: true,

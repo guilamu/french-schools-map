@@ -129,6 +129,7 @@
             show_filter_types: { type: 'string', default: 'true' },
             show_filter_ep: { type: 'string', default: 'true' },
             cluster: { type: 'string', default: 'false' },
+            show_transport: { type: 'string', default: 'false' },
         },
 
         edit: function (props) {
@@ -259,6 +260,14 @@
                             checked: attrs.cluster === 'true',
                             onChange: function (val) {
                                 props.setAttributes({ cluster: val ? 'true' : 'false' });
+                            },
+                        }),
+                        el(ToggleControl, {
+                            label: __('Transports en commun', 'french-schools-map'),
+                            help: __('Affiche un calque transports en commun sur la carte.', 'french-schools-map'),
+                            checked: attrs.show_transport === 'true',
+                            onChange: function (val) {
+                                props.setAttributes({ show_transport: val ? 'true' : 'false' });
                             },
                         })
                     ),

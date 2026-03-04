@@ -102,6 +102,43 @@
     margin: 0;
 }
 
+/* Transport toggle button */
+.fsm-btn-transport {
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 6px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.fsm-btn-transport:hover {
+    background: #e9ecef;
+}
+
+.fsm-btn-transport.fsm-btn-active {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.fsm-btn-transport .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* Transport tooltip */
+.fsm-transport-tooltip {
+    font-size: 12px;
+    line-height: 1.4;
+    padding: 4px 8px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
 /* Locate button */
 .fsm-btn-locate {
     background: #fff;

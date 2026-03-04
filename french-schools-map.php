@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.2.0
+ * Version: 1.3.0
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.2.0');
+define('FSM_VERSION', '1.3.0');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -158,6 +158,7 @@ function fsm_render_shortcode($atts = array())
             'max_zoom'              => '18',
             'tile_url'              => '',
             'show_circo_zones'      => 'true',
+            'show_transport'        => 'false',
         ),
         $atts,
         'french_schools_map'
@@ -219,6 +220,7 @@ function fsm_render_shortcode($atts = array())
         'cluster'               => $cluster,
         'tileUrl'               => $atts['tile_url'],
         'showCircoZones'        => $show_circo,
+        'showTransport'         => filter_var($atts['show_transport'], FILTER_VALIDATE_BOOLEAN),
         'restUrl'               => esc_url_raw(rest_url('fsm/v1/')),
         'nonce'                 => wp_create_nonce('wp_rest'),
     );
@@ -294,6 +296,9 @@ function fsm_render_shortcode($atts = array())
                         </div>
                     <?php endif; ?>
 
+                    <button type="button" class="fsm-btn-transport" title="<?php esc_attr_e('Transports en commun', 'french-schools-map'); ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><path d="M4 11h16"/><path d="M12 3v8"/></svg>
+                    </button>
                     <button type="button" class="fsm-btn-locate" title="<?php esc_attr_e('Me localiser', 'french-schools-map'); ?>">
                         <span class="dashicons dashicons-location"></span>
                     </button>
@@ -392,6 +397,8 @@ function fsm_enqueue_frontend_assets()
         'fullscreen'      => __('Fullscreen', 'french-schools-map'),
         /* translators: %1$s = number of schools shown, %2$s = total number */
         'statsFormat'     => __('%1$s school(s) shown out of %2$s', 'french-schools-map'),
+        'showTransport'   => __('Show public transport', 'french-schools-map'),
+        'hideTransport'   => __('Hide public transport', 'french-schools-map'),
     ));
 }
 

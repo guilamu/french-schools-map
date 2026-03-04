@@ -225,6 +225,14 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.3.0 - 2026-03-04
+- **Transports en commun (Île-de-France)** : calque optionnel affichant les lignes de métro, RER, tramway et train ainsi que les gares/stations
+  - Données officielles Île-de-France Mobilités (API Explore v2, Licence Ouverte)
+  - Lignes colorées avec les couleurs officielles de chaque ligne
+  - Stations affichées en cercles avec tooltip au survol (nom + lignes desservies, ex. « RER E »)
+  - Bouton 🚇 dans la barre d'outils pour activer/désactiver
+  - Attribut `show_transport` (défaut `false`) dans le shortcode et le bloc Gutenberg
+
 ### 1.2.0 - 2026-03-04
 - **Zones de circonscription IEN** : fond de couleur par circonscription affiché lorsqu'un département est sélectionné
   - Contours communaux via l'API geo.api.gouv.fr, colorés par circonscription

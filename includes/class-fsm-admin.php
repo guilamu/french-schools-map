@@ -72,6 +72,7 @@ class FSM_Admin
                 'syncSuccess'  => __('Sync completed successfully!', 'french-schools-map'),
                 'syncError'    => __('An error occurred during sync.', 'french-schools-map'),
                 'confirmSync'  => __('Start sync now? This may take several minutes.', 'french-schools-map'),
+                'copy'         => __('Copy', 'french-schools-map'),
             ),
         ));
     }
@@ -194,6 +195,87 @@ class FSM_Admin
                         </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Shortcode builder -->
+            <div class="fsm-card">
+                <h2><?php esc_html_e('Shortcode Builder', 'french-schools-map'); ?></h2>
+                <p class="description"><?php esc_html_e('Customise the shortcode options below. The generated shortcode updates in real time.', 'french-schools-map'); ?></p>
+
+                <table class="form-table fsm-builder-table">
+                    <tr>
+                        <th><label for="fsm-builder-dept"><?php esc_html_e('Department', 'french-schools-map'); ?></label></th>
+                        <td>
+                            <select id="fsm-builder-dept">
+                                <option value="all"><?php esc_html_e('All', 'french-schools-map'); ?></option>
+                                <?php foreach ($departments as $dept) : ?>
+                                    <option value="<?php echo esc_attr($dept); ?>"><?php echo esc_html($dept); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="fsm-builder-acad"><?php esc_html_e('Academy', 'french-schools-map'); ?></label></th>
+                        <td>
+                            <select id="fsm-builder-acad">
+                                <option value="all"><?php esc_html_e('All', 'french-schools-map'); ?></option>
+                                <?php foreach ($academies as $acad) : ?>
+                                    <option value="<?php echo esc_attr($acad); ?>"><?php echo esc_html($acad); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label><?php esc_html_e('Types', 'french-schools-map'); ?></label></th>
+                        <td>
+                            <label><input type="checkbox" class="fsm-builder-type" value="Ecole" checked /> <?php esc_html_e('Schools', 'french-schools-map'); ?></label>
+                            <label><input type="checkbox" class="fsm-builder-type" value="Collège" checked /> <?php esc_html_e('Middle schools', 'french-schools-map'); ?></label>
+                            <label><input type="checkbox" class="fsm-builder-type" value="Lycée" checked /> <?php esc_html_e('High schools', 'french-schools-map'); ?></label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="fsm-builder-statut"><?php esc_html_e('Status', 'french-schools-map'); ?></label></th>
+                        <td>
+                            <select id="fsm-builder-statut">
+                                <option value="all"><?php esc_html_e('All', 'french-schools-map'); ?></option>
+                                <option value="Public">Public</option>
+                                <option value="Privé">Privé</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="fsm-builder-ep"><?php esc_html_e('Priority education', 'french-schools-map'); ?></label></th>
+                        <td>
+                            <select id="fsm-builder-ep">
+                                <option value="all"><?php esc_html_e('All', 'french-schools-map'); ?></option>
+                                <option value="REP">REP</option>
+                                <option value="REP+">REP+</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label for="fsm-builder-height"><?php esc_html_e('Map height', 'french-schools-map'); ?></label></th>
+                        <td><input type="text" id="fsm-builder-height" value="600px" size="10" /></td>
+                    </tr>
+                    <tr>
+                        <th><?php esc_html_e('Options', 'french-schools-map'); ?></th>
+                        <td>
+                            <label><input type="checkbox" id="fsm-builder-filters" checked /> <?php esc_html_e('Show filters', 'french-schools-map'); ?></label><br>
+                            <label><input type="checkbox" id="fsm-builder-search" checked /> <?php esc_html_e('Show search', 'french-schools-map'); ?></label><br>
+                            <label><input type="checkbox" id="fsm-builder-cluster" /> <?php esc_html_e('Enable clustering', 'french-schools-map'); ?></label><br>
+                            <label><input type="checkbox" id="fsm-builder-circo" checked /> <?php esc_html_e('Show circo zones', 'french-schools-map'); ?></label><br>
+                            <label><input type="checkbox" id="fsm-builder-transport" /> <?php esc_html_e('Show public transport', 'french-schools-map'); ?></label>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="fsm-builder-output">
+                    <label><strong><?php esc_html_e('Generated shortcode', 'french-schools-map'); ?></strong></label>
+                    <div class="fsm-builder-code-wrap">
+                        <code id="fsm-builder-preview">[french_schools_map]</code>
+                        <button type="button" class="button button-small" id="fsm-builder-copy"><?php esc_html_e('Copy', 'french-schools-map'); ?></button>
+                    </div>
+                </div>
             </div>
 
             <!-- Default filters settings -->

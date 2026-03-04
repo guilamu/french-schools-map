@@ -66,3 +66,35 @@
 #fsm-sync-message.error {
     color: #d63638;
 }
+
+/* ── Shortcode builder ─────────────────────────────────────── */
+.fsm-builder-table label {
+    margin-right: 12px;
+    white-space: nowrap;
+}
+
+.fsm-builder-output {
+    margin-top: 16px;
+    padding: 14px 16px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+
+.fsm-builder-code-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.fsm-builder-code-wrap code {
+    flex: 1;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    border-radius: 3px;
+    font-size: 13px;
+    word-break: break-all;
+    user-select: all;
+}

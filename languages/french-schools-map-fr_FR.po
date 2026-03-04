@@ -4,10 +4,10 @@
 # Guilamu <guilamu@github.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.3.0\n"
+"Project-Id-Version: French Schools Map 1.3.5\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
-"POT-Creation-Date: 2026-03-04T09:00:00+01:00\n"
-"PO-Revision-Date: 2026-03-04 13:40+0100\n"
+"POT-Creation-Date: 2026-03-04T19:13:00+01:00\n"
+"PO-Revision-Date: 2026-03-04 19:16+0100\n"
 "Last-Translator: Guilamu <guilamu@github.com>\n"
 "Language-Team: French (France)\n"
 "Language: fr_FR\n"
@@ -24,11 +24,11 @@ msgstr "Carte des écoles françaises"
 
 #. Description of the plugin
 msgid ""
-"Carte interactive des établissements scolaires français basée sur "
-"OpenStreetMap et les données open data du Ministère de l'Éducation Nationale."
+"Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data "
+"du Ministère de l'Éducation Nationale."
 msgstr ""
-"Carte interactive des établissements scolaires français basée sur "
-"OpenStreetMap et les données open data du Ministère de l'Éducation Nationale."
+"Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data "
+"du Ministère de l'Éducation Nationale."
 
 #: french-schools-map.php
 msgid "Schools Map"
@@ -97,8 +97,11 @@ msgstr "Erreur lors de la synchronisation."
 
 #: includes/class-fsm-admin.php
 msgid "Start sync now? This may take several minutes."
-msgstr ""
-"Lancer la synchronisation maintenant ? Cela peut prendre plusieurs minutes."
+msgstr "Lancer la synchronisation maintenant ? Cela peut prendre plusieurs minutes."
+
+#: includes/class-fsm-admin.php
+msgid "Copy"
+msgstr "Copier"
 
 #: includes/class-fsm-admin.php
 msgid "Settings saved."
@@ -173,18 +176,49 @@ msgid "Enable marker clustering"
 msgstr "Activer le clustering de marqueurs"
 
 #: includes/class-fsm-admin.php
+msgid "Shortcode Builder"
+msgstr "Constructeur de shortcode"
+
+#: includes/class-fsm-admin.php
+msgid "Customise the shortcode options below. The generated shortcode updates in real time."
+msgstr "Personnalisez les options du shortcode ci-dessous. Le shortcode généré se met à jour en temps réel."
+
+#: includes/class-fsm-admin.php
+msgid "Show filters"
+msgstr "Afficher les filtres"
+
+#: includes/class-fsm-admin.php
+msgid "Show search"
+msgstr "Afficher la recherche"
+
+#: includes/class-fsm-admin.php
+msgid "Enable clustering"
+msgstr "Activer le clustering"
+
+#: includes/class-fsm-admin.php
+msgid "Show circo zones"
+msgstr "Afficher les zones de circonscription"
+
+#: includes/class-fsm-admin.php
+msgid "Options"
+msgstr "Options"
+
+#: includes/class-fsm-admin.php
+msgid "Generated shortcode"
+msgstr "Shortcode généré"
+
+#: includes/class-fsm-admin.php
 msgid "Default settings"
 msgstr "Paramètres par défaut"
 
 #: includes/class-fsm-admin.php
 msgid ""
-"Set the default geographic filter. Choose either an academy or a department "
-"(mutually exclusive). This setting applies when the shortcode has no "
-"departement/academie attribute."
+"Set the default geographic filter. Choose either an academy or a department (mutually exclusive). This "
+"setting applies when the shortcode has no departement/academie attribute."
 msgstr ""
-"Définissez le filtre géographique par défaut. Choisissez soit une académie, "
-"soit un département (mutuellement exclusifs). Ce réglage s'applique quand le "
-"shortcode n'a pas d'attribut departement/academie."
+"Définissez le filtre géographique par défaut. Choisissez soit une académie, soit un département "
+"(mutuellement exclusifs). Ce réglage s'applique quand le shortcode n'a pas d'attribut departement/"
+"academie."
 
 #: includes/class-fsm-admin.php
 msgid "Default academy"
@@ -195,24 +229,16 @@ msgid "All (no filter)"
 msgstr "Toutes (pas de filtre)"
 
 #: includes/class-fsm-admin.php
-msgid ""
-"If an academy is selected, it automatically groups the corresponding "
-"departments."
-msgstr ""
-"Si une académie est sélectionnée, elle regroupe automatiquement les "
-"départements correspondants."
+msgid "If an academy is selected, it automatically groups the corresponding departments."
+msgstr "Si une académie est sélectionnée, elle regroupe automatiquement les départements correspondants."
 
 #: includes/class-fsm-admin.php
 msgid "Default department"
 msgstr "Département par défaut"
 
 #: includes/class-fsm-admin.php
-msgid ""
-"The department takes priority over the academy. If a department is chosen, "
-"the academy is ignored."
-msgstr ""
-"Le département a priorité sur l'académie. Si un département est choisi, "
-"l'académie est ignorée."
+msgid "The department takes priority over the academy. If a department is chosen, the academy is ignored."
+msgstr "Le département a priorité sur l'académie. Si un département est choisi, l'académie est ignorée."
 
 #: includes/class-fsm-admin.php
 msgid "Default types"
@@ -300,13 +326,11 @@ msgstr "Synchroniser maintenant"
 
 #: includes/class-fsm-admin.php
 msgid ""
-"The sync downloads the full school directory (~69,000 establishments) from "
-"the Open Data portal of the Ministry of National Education. This operation "
-"may take several minutes."
+"The sync downloads the full school directory (~69,000 establishments) from the Open Data portal of the "
+"Ministry of National Education. This operation may take several minutes."
 msgstr ""
-"La synchronisation télécharge l'intégralité de l'annuaire (~69 000 "
-"établissements) depuis le portail Open Data du Ministère de l'Éducation "
-"Nationale. Cette opération peut prendre plusieurs minutes."
+"La synchronisation télécharge l'intégralité de l'annuaire (~69 000 établissements) depuis le portail Open "
+"Data du Ministère de l'Éducation Nationale. Cette opération peut prendre plusieurs minutes."
 
 #: includes/class-fsm-admin.php
 msgid "Idle"
@@ -342,9 +366,7 @@ msgstr "Colonnes obligatoires manquantes dans le CSV : %s"
 
 #: includes/class-github-updater.php
 msgid "Unable to rename the update folder. Please retry or update manually."
-msgstr ""
-"Impossible de renommer le dossier de mise à jour. Veuillez réessayer ou "
-"mettre à jour manuellement."
+msgstr "Impossible de renommer le dossier de mise à jour. Veuillez réessayer ou mettre à jour manuellement."
 
 #: french-schools-map.php (shortcode HTML)
 msgid "Search"

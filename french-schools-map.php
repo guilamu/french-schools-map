@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.3.0
+ * Version: 1.3.5
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.3.0');
+define('FSM_VERSION', '1.3.5');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -185,6 +185,32 @@ function fsm_render_shortcode($atts = array())
     if ($global_statut !== 'all') $atts['statut']               = $global_statut;
     if ($global_ep     !== 'all') $atts['education_prioritaire'] = $global_ep;
 
+    // Normalize user-friendly type names to internal DB values.
+    // Accepts: Écoles/Ecoles → Ecole, Collèges → Collège, Lycées → Lycée.
+    if ($atts['types'] !== 'all') {
+        $type_aliases = array(
+            'écoles'   => 'Ecole',
+            'ecoles'   => 'Ecole',
+            'école'    => 'Ecole',
+            'ecole'    => 'Ecole',
+            'collèges' => 'Collège',
+            'colleges' => 'Collège',
+            'collège'  => 'Collège',
+            'college'  => 'Collège',
+            'lycées'   => 'Lycée',
+            'lycees'   => 'Lycée',
+            'lycée'    => 'Lycée',
+            'lycee'    => 'Lycée',
+        );
+        $parts = array_map('trim', explode(',', $atts['types']));
+        $normalized = array();
+        foreach ($parts as $part) {
+            $key = mb_strtolower($part, 'UTF-8');
+            $normalized[] = $type_aliases[$key] ?? $part;
+        }
+        $atts['types'] = implode(',', array_unique($normalized));
+    }
+
     // Enqueue frontend assets.
     fsm_enqueue_frontend_assets();
 
@@ -270,18 +296,9 @@ function fsm_render_shortcode($atts = array())
                             <label for="<?php echo esc_attr($map_id); ?>-statut"><?php esc_html_e('Statut', 'french-schools-map'); ?></label>
                             <select id="<?php echo esc_attr($map_id); ?>-statut" class="fsm-select-statut">
                                 <option value="all"><?php esc_html_e('Tous', 'french-schools-map'); ?></option>
-                                <option value="Public"><?php esc_html_e('Public', 'french-schools-map'); ?></option>
-                                <option value="Privé"><?php esc_html_e('Privé', 'french-schools-map'); ?></option>
+                                <option value="Public" <?php selected($atts['statut'], 'Public'); ?>><?php esc_html_e('Public', 'french-schools-map'); ?></option>
+                                <option value="Privé" <?php selected($atts['statut'], 'Privé'); ?>><?php esc_html_e('Privé', 'french-schools-map'); ?></option>
                             </select>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if ($show_f_types) : ?>
-                        <div class="fsm-filter-group fsm-filter-types">
-                            <span class="fsm-filter-label"><?php esc_html_e('Types', 'french-schools-map'); ?></span>
-                            <label><input type="checkbox" class="fsm-type-cb" value="Ecole" checked /> <?php esc_html_e('Écoles', 'french-schools-map'); ?></label>
-                            <label><input type="checkbox" class="fsm-type-cb" value="Collège" checked /> <?php esc_html_e('Collèges', 'french-schools-map'); ?></label>
-                            <label><input type="checkbox" class="fsm-type-cb" value="Lycée" checked /> <?php esc_html_e('Lycées', 'french-schools-map'); ?></label>
                         </div>
                     <?php endif; ?>
 
@@ -290,14 +307,33 @@ function fsm_render_shortcode($atts = array())
                             <label for="<?php echo esc_attr($map_id); ?>-ep"><?php esc_html_e('Éducation prioritaire', 'french-schools-map'); ?></label>
                             <select id="<?php echo esc_attr($map_id); ?>-ep" class="fsm-select-ep">
                                 <option value="all"><?php esc_html_e('Tous', 'french-schools-map'); ?></option>
-                                <option value="REP"><?php esc_html_e('REP', 'french-schools-map'); ?></option>
-                                <option value="REP+"><?php esc_html_e('REP+', 'french-schools-map'); ?></option>
+                                <option value="REP" <?php selected($atts['education_prioritaire'], 'REP'); ?>><?php esc_html_e('REP', 'french-schools-map'); ?></option>
+                                <option value="REP+" <?php selected($atts['education_prioritaire'], 'REP+'); ?>><?php esc_html_e('REP+', 'french-schools-map'); ?></option>
                             </select>
                         </div>
                     <?php endif; ?>
 
+                    <?php if ($show_f_types) :
+                        $active_types = ($atts['types'] === 'all')
+                            ? array('Ecole', 'Collège', 'Lycée')
+                            : array_map('trim', explode(',', $atts['types']));
+                    ?>
+                        <div class="fsm-filter-group fsm-filter-types">
+                            <span class="fsm-filter-label"><?php esc_html_e('Types', 'french-schools-map'); ?></span>
+                            <label><input type="checkbox" class="fsm-type-cb" value="Ecole" <?php checked(in_array('Ecole', $active_types)); ?> /> <?php esc_html_e('Écoles', 'french-schools-map'); ?></label>
+                            <label><input type="checkbox" class="fsm-type-cb" value="Collège" <?php checked(in_array('Collège', $active_types)); ?> /> <?php esc_html_e('Collèges', 'french-schools-map'); ?></label>
+                            <label><input type="checkbox" class="fsm-type-cb" value="Lycée" <?php checked(in_array('Lycée', $active_types)); ?> /> <?php esc_html_e('Lycées', 'french-schools-map'); ?></label>
+                        </div>
+                    <?php endif; ?>
+
                     <button type="button" class="fsm-btn-transport" title="<?php esc_attr_e('Transports en commun', 'french-schools-map'); ?>">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="16" rx="2"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><path d="M4 11h16"/><path d="M12 3v8"/></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="4" y="3" width="16" height="16" rx="2" />
+                            <circle cx="9" cy="15" r="1" />
+                            <circle cx="15" cy="15" r="1" />
+                            <path d="M4 11h16" />
+                            <path d="M12 3v8" />
+                        </svg>
                     </button>
                     <button type="button" class="fsm-btn-locate" title="<?php esc_attr_e('Me localiser', 'french-schools-map'); ?>">
                         <span class="dashicons dashicons-location"></span>

@@ -225,6 +225,12 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.3.5 - 2026-03-04
+- **Corrigé :** les attributs `statut`, `types` et `education_prioritaire` du shortcode sont désormais pris en compte (pré-sélection des filtres HTML côté serveur)
+- **Corrigé :** normalisation des noms de types dans le shortcode (ex. `Écoles` → `Ecole`, `Collèges` → `Collège`, `Lycées` → `Lycée`)
+- **Corrigé :** les valeurs `statut`, `types` et `education_prioritaire` de la configuration sont envoyées au REST API même lorsque les widgets de filtre sont masqués
+- **Ajouté :** constructeur de shortcode interactif sur la page de réglages (génération et copie du shortcode en temps réel)
+
 ### 1.3.0 - 2026-03-04
 - **Transports en commun (Île-de-France)** : calque optionnel affichant les lignes de métro, RER, tramway et train ainsi que les gares/stations
   - Données officielles Île-de-France Mobilités (API Explore v2, Licence Ouverte)

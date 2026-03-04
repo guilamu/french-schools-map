@@ -838,8 +838,15 @@
         if (circo && circo.value !== 'all' && deptVal !== 'all') params.circonscription = circo.value;
         if (search && search.value.length >= 2) params.search = search.value;
 
-        // Fallback for statut config default when no widget.
+        // Fallback for config defaults when UI widgets are absent.
         if (!statut && this.config.statut !== 'all') params.statut = this.config.statut;
+        if (!ep && this.config.educationPrioritaire && this.config.educationPrioritaire !== 'all') params.ep = this.config.educationPrioritaire;
+
+        // Fallback for types when checkboxes are absent (show_filter_types="false").
+        var typeCbs = this.wrapper.querySelectorAll('.fsm-type-cb');
+        if (!typeCbs.length && this.config.types && this.config.types !== 'all') {
+            params.types = this.config.types;
+        }
 
         return params;
     };
@@ -930,19 +937,19 @@
 
     // ── Mode → colour fallback (when colourweb_hexa is missing) ──────
     var TRANSPORT_MODE_COLORS = {
-        METRO:   '#003CA6',
-        RER:     '#18B04B',
+        METRO: '#003CA6',
+        RER: '#18B04B',
         TRAMWAY: '#000000',
-        TRAIN:   '#7B4339',
+        TRAIN: '#7B4339',
         NAVETTE: '#999999',
     };
 
     // ── Mode → readable label ─────────────────────────────────────────
     var TRANSPORT_MODE_LABELS = {
-        METRO:   'Métro',
-        RER:     'RER',
+        METRO: 'Métro',
+        RER: 'RER',
         TRAMWAY: 'Tramway',
-        TRAIN:   'Transilien / TER',
+        TRAIN: 'Transilien / TER',
         NAVETTE: 'Navette / Val',
     };
 
@@ -1023,9 +1030,9 @@
                     var p = feature.properties;
                     var color = p.color || TRANSPORT_MODE_COLORS[p.mode] || '#666';
                     var weight = (p.mode === 'METRO') ? 4
-                        : (p.mode === 'RER')     ? 3.5
-                        : (p.mode === 'TRAMWAY')  ? 3
-                        : 2.5;
+                        : (p.mode === 'RER') ? 3.5
+                            : (p.mode === 'TRAMWAY') ? 3
+                                : 2.5;
                     return {
                         color: color,
                         weight: weight,
@@ -1130,21 +1137,35 @@
             self.toggleFullscreen();
         });
 
-        // Escape key exits fullscreen.
+        // Escape key exits fullscreen (fallback when native Fullscreen API is unavailable).
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && self._isFullscreen) {
+            if (e.key === 'Escape' && self._isFullscreen
+                && !document.fullscreenElement && !document.webkitFullscreenElement) {
                 self.toggleFullscreen();
             }
         });
+
+        // Sync UI when native fullscreen is exited by the browser (e.g. ESC key).
+        var onFsChange = function () {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && self._isFullscreen) {
+                self._setFullscreenUI(false);
+                setTimeout(function () { self.map.invalidateSize(); }, 100);
+            }
+        };
+        document.addEventListener('fullscreenchange', onFsChange);
+        document.addEventListener('webkitfullscreenchange', onFsChange);
     };
 
-    FSM_Map.prototype.toggleFullscreen = function () {
+    /**
+     * Update DOM classes, icon and button title for fullscreen state.
+     */
+    FSM_Map.prototype._setFullscreenUI = function (enter) {
         var btn = this.wrapper.querySelector('.fsm-btn-fullscreen');
         var icon = btn ? btn.querySelector('.dashicons') : null;
 
-        this._isFullscreen = !this._isFullscreen;
+        this._isFullscreen = enter;
 
-        if (this._isFullscreen) {
+        if (enter) {
             this.wrapper.classList.add('fsm-fullscreen');
             document.body.classList.add('fsm-body-fullscreen');
             if (icon) {
@@ -1161,9 +1182,36 @@
             }
             if (btn) btn.title = i18n.fullscreen;
         }
+    };
+
+    FSM_Map.prototype.toggleFullscreen = function () {
+        var self = this;
+
+        if (!this._isFullscreen) {
+            // ── Enter fullscreen ──
+            this._setFullscreenUI(true);
+
+            // Native Fullscreen API places the element in the browser top-layer,
+            // above every other element (headers, menus, admin-bars…).
+            if (this.wrapper.requestFullscreen) {
+                this.wrapper.requestFullscreen().catch(function () {});
+            } else if (this.wrapper.webkitRequestFullscreen) {
+                this.wrapper.webkitRequestFullscreen();
+            }
+        } else {
+            // ── Exit fullscreen ──
+            this._setFullscreenUI(false);
+
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(function () {});
+                } else if (document.webkitExitFullscreen) {
+                    document.webkitExitFullscreen();
+                }
+            }
+        }
 
         // Let the DOM reflow then tell Leaflet to recalculate size.
-        var self = this;
         setTimeout(function () {
             self.map.invalidateSize();
         }, 100);

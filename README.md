@@ -225,6 +225,9 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.3.7 - 2026-03-09
+- **Amélioration :** Ajout du préfixe "Circonscription de " dans l'infobulle au survol des zones de circonscription sur la carte
+
 ### 1.3.6 - 2026-03-09
 - **Corrigé :** Correction d'une PHP Notice : suppression de l'appel de traduction dans le filtre cron_schedules pour éviter que _load_textdomain_just_in_time ne soit déclenché avant init.
 

@@ -1499,7 +1499,7 @@
                     onEachFeature: function (feature, layer) {
                         var circo = feature.properties.circo;
                         if (circo) {
-                            layer.bindTooltip(cleanNomCirconscription(circo), {
+                            layer.bindTooltip('Circonscription de ' + cleanNomCirconscription(circo), {
                                 sticky: true,
                                 className: 'fsm-circo-tooltip',
                             });

@@ -252,6 +252,10 @@ class FSM_GitHub_Updater
 
         // Build update object
         return array(
+            'id'           => 'github.com/' . self::GITHUB_USER . '/' . self::GITHUB_REPO,
+            'slug'         => self::PLUGIN_SLUG,
+            'plugin'       => self::PLUGIN_FILE,
+            'new_version'  => $new_version,
             'version'      => $new_version,
             'package'      => self::get_package_url($release_data),
             'url'          => $release_data['html_url'],

@@ -72,7 +72,7 @@ function fsm_register_cron_intervals($schedules = array())
 {
     $schedules['fsm_monthly'] = array(
         'interval' => 30 * DAY_IN_SECONDS,
-        'display'  => __('Once Monthly (FSM)', 'french-schools-map'),
+        'display'  => 'Once Monthly (FSM)',
     );
     return $schedules;
 }

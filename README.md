@@ -225,6 +225,9 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.3.6 - 2026-03-09
+- **Corrigé :** Correction d'une PHP Notice : suppression de l'appel de traduction dans le filtre cron_schedules pour éviter que _load_textdomain_just_in_time ne soit déclenché avant init.
+
 ### 1.3.5 - 2026-03-04
 - **Corrigé :** les attributs `statut`, `types` et `education_prioritaire` du shortcode sont désormais pris en compte (pré-sélection des filtres HTML côté serveur)
 - **Corrigé :** normalisation des noms de types dans le shortcode (ex. `Écoles` → `Ecole`, `Collèges` → `Collège`, `Lycées` → `Lycée`)

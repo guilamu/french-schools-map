@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.3.7
+ * Version: 1.3.8
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.3.7');
+define('FSM_VERSION', '1.3.8');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -98,6 +98,18 @@ function fsm_plugin_row_meta($links, $file)
     if (plugin_basename(FSM_PLUGIN_FILE) !== $file) {
         return $links;
     }
+
+    // "View details" thickbox link — same pattern as WordPress.org-hosted plugins.
+    $links[] = sprintf(
+        '<a href="%s" class="thickbox open-plugin-details-modal" aria-label="%s" data-title="%s">%s</a>',
+        esc_url(self_admin_url(
+            'plugin-install.php?tab=plugin-information&plugin=french-schools-map'
+            . '&TB_iframe=true&width=772&height=926'
+        )),
+        esc_attr__('More information about French Schools Map', 'french-schools-map'),
+        esc_attr__('French Schools Map', 'french-schools-map'),
+        esc_html__('View details', 'french-schools-map')
+    );
 
     if (class_exists('Guilamu_Bug_Reporter')) {
         $links[] = sprintf(

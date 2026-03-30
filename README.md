@@ -225,6 +225,12 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.3.8 - 2026-03-30
+- **Amélioration :** Réécriture du système de mise à jour GitHub : popup "Voir les détails" avec onglets Description, Installation, FAQ et Changelog parsés depuis le README.md local (via Parsedown)
+- **Ajouté :** Lien "Voir les détails" (thickbox) dans la liste des extensions
+- **Ajouté :** Conversion des tableaux Markdown en structures div/span compatibles wp_kses
+- **Ajouté :** Injection CSS via admin_head pour le style de la modale d'informations du plugin
+
 ### 1.3.7 - 2026-03-09
 - **Amélioration :** Ajout du préfixe "Circonscription de " dans l'infobulle au survol des zones de circonscription sur la carte
 

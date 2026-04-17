@@ -287,8 +287,8 @@ class FSM_GitHub_Updater
      * Provide plugin information for the WordPress plugin details popup.
      *
      * Reads sections (description, installation, FAQ, changelog) from the
-     * local README.md instead of fetching from the GitHub release body.
-     * This avoids API rate limits and gives full control over the content.
+     * local README.md. When an update is available, the GitHub release body
+     * is prepended to the changelog so users see what's new before updating.
      *
      * @param false|object|array $res    The result object or array.
      * @param string             $action The type of information being requested.
@@ -352,8 +352,23 @@ class FSM_GitHub_Updater
             $res->sections['faq'] = $readme['faq'];
         }
 
-        $res->sections['changelog'] = !empty($readme['changelog'])
-            ? $readme['changelog']
+        // When an update is available, the local README only contains the
+        // installed version's changelog.  Prepend the GitHub release body
+        // so the user sees what's new in the upcoming version.
+        $changelog_html      = '';
+        $installed_version   = $plugin_data['Version'] ?? '0.0.0';
+
+        if ($release_data && !empty($release_data['body']) && version_compare($installed_version, $version, '<')) {
+            $changelog_html .= '<h4>' . esc_html($version) . '</h4>'
+                             . self::markdown_to_html($release_data['body']);
+        }
+
+        if (!empty($readme['changelog'])) {
+            $changelog_html .= $readme['changelog'];
+        }
+
+        $res->sections['changelog'] = !empty($changelog_html)
+            ? $changelog_html
             : sprintf(
                 '<p>See <a href="https://github.com/%s/%s/releases" target="_blank">GitHub releases</a> for changelog.</p>',
                 esc_attr(self::GITHUB_USER),
@@ -364,10 +379,15 @@ class FSM_GitHub_Updater
     }
 
     /**
-     * Inject CSS overrides in the plugin-information iframe.
+     * Inject CSS overrides and optional sidebar info in the plugin-information iframe.
      *
      * wp_kses_post() strips <style> tags from section content, so CSS must be
      * injected via the admin_head hook which fires inside the iframe's <head>.
+     *
+     * A CSS geometric pattern replaces the banner image area: WordPress only adds
+     * the `with-banner` class to #plugin-information-title when $api->banners
+     * contains real image URLs. A small JS snippet adds the class manually so the
+     * CSS pattern and h2 styling apply without any external image.
      */
     public static function plugin_info_css(): void
     {
@@ -379,7 +399,45 @@ class FSM_GitHub_Updater
             return;
         }
 
+        // CSS pattern variables for the banner background.
+        $pattern_css = '--s: 27px;'
+            . '--c1: #b2b2b2;'
+            . '--c2: #ffffff;'
+            . '--c3: #d9d9d9;'
+            . '--_g: var(--c3) 0 120deg, #0000 0;';
+
+        $pattern_bg = 'conic-gradient(from -60deg at 50% calc(100%/3), var(--_g)),'
+            . 'conic-gradient(from 120deg at 50% calc(200%/3), var(--_g)),'
+            . 'conic-gradient(from 60deg at calc(200%/3), var(--c3) 60deg, var(--c2) 0 120deg, #0000 0),'
+            . 'conic-gradient(from 180deg at calc(100%/3), var(--c1) 60deg, var(--_g)),'
+            . 'linear-gradient(90deg, var(--c1) calc(100%/6), var(--c2) 0 50%,'
+            . 'var(--c1) 0 calc(500%/6), var(--c2) 0)';
+
         echo '<style>'
+            // CSS geometric pattern banner (replaces banner image).
+            . '#plugin-information-title.with-banner {'
+            .   $pattern_css
+            .   'background: ' . $pattern_bg . ' !important;'
+            .   'background-size: calc(1.732 * var(--s)) var(--s) !important;'
+            . '}'
+            // Plugin name styled like official WordPress banner h2.
+            . '#plugin-information-title.with-banner h2 {'
+            .   'position: relative;'
+            .   'font-family: "Helvetica Neue", sans-serif;'
+            .   'display: inline-block;'
+            .   'font-size: 30px;'
+            .   'line-height: 1.68;'
+            .   'box-sizing: border-box;'
+            .   'max-width: 100%;'
+            .   'padding: 0 15px;'
+            .   'margin-top: 174px;'
+            .   'color: #fff;'
+            .   'background: rgba(29, 35, 39, 0.9);'
+            .   'text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);'
+            .   'box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);'
+            .   'border-radius: 8px;'
+            . '}'
+            // Section content fixes.
             . '#section-holder .section h2 { margin: 1.5em 0 0.5em; clear: none; }'
             . '#section-holder .section h3 { margin: 1.5em 0 0.5em; }'
             . '#section-holder .section > :first-child { margin-top: 0; }'
@@ -388,6 +446,15 @@ class FSM_GitHub_Updater
             . '.md-tr > span { display: table-cell; padding: 6px 10px; border: 1px solid #ddd; vertical-align: top; }'
             . '.md-th > span { font-weight: 600; background: #f5f5f5; }'
             . '</style>';
+
+        // JS: add with-banner class (WordPress only adds it for real banner images).
+        echo '<script>'
+            . 'document.addEventListener("DOMContentLoaded",function(){'
+            // Add with-banner class to trigger the CSS pattern background.
+            . 'var title=document.getElementById("plugin-information-title");'
+            . 'if(title){title.classList.add("with-banner");}'
+            . '});'
+            . '</script>';
     }
 
     // ------------------------------------------------------------------

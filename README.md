@@ -225,6 +225,11 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.4.0 - 2026-04-17
+- **Corrigé :** Erreur « Duplicate entry » lors de la synchronisation mensuelle — les identifiants en double dans le CSV source (ex. 9840265R en Polynésie Française) sont désormais gérés via `ON DUPLICATE KEY UPDATE`
+- **Amélioration :** Le popup « Voir les détails » affiche désormais un bandeau géométrique CSS (sans image externe) et prépend le changelog de la release GitHub lorsqu'une mise à jour est disponible
+- **Amélioration :** Ajout d'un log au démarrage de la synchronisation pour faciliter le débogage
+
 ### 1.3.8 - 2026-03-30
 - **Amélioration :** Réécriture du système de mise à jour GitHub : popup "Voir les détails" avec onglets Description, Installation, FAQ et Changelog parsés depuis le README.md local (via Parsedown)
 - **Ajouté :** Lien "Voir les détails" (thickbox) dans la liste des extensions

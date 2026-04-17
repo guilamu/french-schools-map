@@ -108,6 +108,8 @@ class FSM_Local_DB
         update_option(self::OPTION_STATUS, 'running');
         update_option(self::OPTION_ERROR, '');
 
+        self::log('Sync starting…');
+
         if (function_exists('set_time_limit')) {
             @set_time_limit(600);
         }
@@ -147,7 +149,7 @@ class FSM_Local_DB
         self::unschedule_sync();
         wp_schedule_event(time() + 30 * DAY_IN_SECONDS, 'fsm_monthly', self::CRON_HOOK);
 
-        self::log('Sync completed. Records: ' . $result);
+        self::log('Sync completed successfully. Records imported: ' . $result);
         return true;
     }
 
@@ -349,7 +351,20 @@ class FSM_Local_DB
             $sql_vals[] = '(' . implode(',', $row_ph) . ')';
         }
 
-        $sql = "INSERT INTO {$table} ({$sql_cols}) VALUES " . implode(',', $sql_vals);
+        // Use ON DUPLICATE KEY UPDATE so that duplicate `identifiant` values
+        // from the source CSV (e.g. 9840265R appears twice for two different
+        // schools in Polynésie Française) don't cause the entire batch to fail.
+        // The last row for a given identifiant wins.
+        $update_parts = array();
+        foreach ($columns as $col) {
+            if ($col === 'identifiant') {
+                continue; // No need to update the key itself.
+            }
+            $update_parts[] = "`{$col}` = VALUES(`{$col}`)";
+        }
+        $on_dup = ' ON DUPLICATE KEY UPDATE ' . implode(', ', $update_parts);
+
+        $sql = "INSERT INTO {$table} ({$sql_cols}) VALUES " . implode(',', $sql_vals) . $on_dup;
 
         if (!empty($flat_vals)) {
             $wpdb->query($wpdb->prepare($sql, $flat_vals));

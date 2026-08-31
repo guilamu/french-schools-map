@@ -250,9 +250,6 @@ Le plugin gère ~69 000 points grâce à :
 - **Fixed:** Le fond de carte par défaut passe de CARTO (cartocdn.com) aux tuiles standard OpenStreetMap. CARTO refuse désormais les requêtes anonymes et affichait un filigrane « API KEY REQUIRED » sur toute la carte
 - **New:** Prise en charge des fonds de carte CARTO via une clé API, avec un réglage **Fond de carte** (clé + choix du style Voyager / Positron / Dark Matter) et un lien direct vers <https://carto.com/basemaps/apikey/>
 - **Improved:** L'attribution du fond de carte est désormais construite côté serveur et suit le fournisseur réellement utilisé
-- **Fixed:** Le popup « Voir les détails » est reconstruit sur `plugins_api_result` (priorité `PHP_INT_MAX`) : un filtre `plugins_api` tiers renvoyant `false` ne peut plus provoquer un « Plugin not found »
-- **Fixed:** `download_link` n'est plus vide lorsque l'API GitHub est injoignable, le bouton d'action du popup s'affiche donc toujours
-- **Improved:** README aligné sur `README.Reference.md` (badges, sections Security / Contributing / Acknowledgements, arborescence complète)
 
 ### 1.4.0 - 2026-04-17
 - **Fixed:** Erreur « Duplicate entry » lors de la synchronisation mensuelle — les identifiants en double dans le CSV source (ex. 9840265R en Polynésie Française) sont désormais gérés via `ON DUPLICATE KEY UPDATE`

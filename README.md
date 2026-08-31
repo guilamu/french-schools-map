@@ -16,26 +16,26 @@ Ce plugin affiche une carte interactive des ~69 000 établissements scolaires fr
 - 🔎 **Recherche textuelle** par nom d'établissement ou ville
 - 📊 **Clustering intelligent** pour des performances optimales (Leaflet.markercluster)
 - 🎨 **Marqueurs colorés** par type d'établissement
-- 📱 **Adaptatif** : adapté aux mobiles et aux ordinateurs de bureau
+- 📱 **Responsive** : adapté mobile et desktop
 - 🌐 **Académies & Départements** : filtres géographiques avec zoom automatique sur la zone sélectionnée
 - 📋 **Popup détaillée** : nom, adresse, téléphone, email, statut REP/REP+, itinéraire (chargement automatique pour < 1 500 établissements)
 - 📦 **Shortcode** et **bloc Gutenberg** disponibles
 - 🔄 **Synchronisation mensuelle** automatique via WP-Cron
 - 📍 **Géolocalisation** : bouton "Me localiser"
 
-## Fonctionnalités principales
+## Key Features
 
-- **Données ouvertes :** Données officielles du Ministère de l'Éducation Nationale (~69 000 établissements)
-- **Aucune clé API :** OpenStreetMap/Leaflet.js par défaut — aucune clé API requise (une clé CARTO gratuite est possible en option)
-- **Multilingue :** Fonctionne avec tout contenu linguistique
-- **Prêt pour la traduction :** Toutes les chaînes sont internationalisées
-- **Sécurisé :** Requêtes REST authentifiées par nonce WordPress, données sanitisées
-- **Mises à jour GitHub :** Mises à jour automatiques depuis les releases GitHub
+- **Open Data:** Données officielles du Ministère de l'Éducation Nationale (~69 000 établissements)
+- **No API Key:** OpenStreetMap/Leaflet.js par défaut — aucune clé API requise (une clé CARTO gratuite est possible en option)
+- **Multilingual:** Fonctionne avec tout contenu linguistique
+- **Translation-Ready:** Toutes les chaînes sont internationalisées
+- **Secure:** Requêtes REST authentifiées par nonce WordPress, données sanitisées
+- **GitHub Updates:** Mises à jour automatiques depuis les releases GitHub
 
-## Prérequis
+## Requirements
 
-- WordPress 5.8 ou version ultérieure
-- PHP 7.4 ou version ultérieure
+- WordPress 5.8 or higher
+- PHP 7.4 or higher
 
 ## Installation
 
@@ -67,32 +67,32 @@ add_filter( 'fsm_marker_color', function( $color, $type ) {
 ### Les données sont-elles à jour ?
 Les données sont synchronisées automatiquement chaque mois depuis l'Annuaire de l'Éducation Nationale. Vous pouvez aussi forcer une synchronisation manuelle depuis la page de réglages.
 
-## Structure du projet
+## Project Structure
 
 ```
 .
-├── french-schools-map.php             # Fichier principal de l’extension (shortcode, bloc, résolution du fond de carte)
-├── uninstall.php                      # Nettoyage lors de la désinstallation
+├── french-schools-map.php             # Main plugin file (shortcode, block, basemap resolution)
+├── uninstall.php                      # Cleanup on uninstall
 ├── README.md
 ├── assets
 │   ├── css
-│   │   ├── fsm-admin.css              # Styles de la page de réglages de l’administration
-│   │   └── fsm-map.css                # Styles de la carte côté visiteur
+│   │   ├── fsm-admin.css              # Admin settings page styles
+│   │   └── fsm-map.css                # Frontend map styles
 │   └── js
-│       ├── fsm-admin.js               # Script de la page de réglages de l’administration
-│       ├── fsm-block.js               # Script de l’éditeur de blocs Gutenberg
-│       └── fsm-map.js                 # Logique de la carte côté visiteur (Leaflet)
+│       ├── fsm-admin.js               # Admin settings page script
+│       ├── fsm-block.js               # Gutenberg block editor script
+│       └── fsm-map.js                 # Frontend map logic (Leaflet)
 ├── includes
-│   ├── class-fsm-academies.php        # Données des académies et correspondance avec les départements
-│   ├── class-fsm-admin.php            # Page de réglages de l’administration
-│   ├── class-fsm-local-db.php         # Synchronisation de la base locale et utilitaires REST
-│   ├── class-fsm-rest-api.php         # Points de terminaison de l’API REST
-│   ├── class-github-updater.php       # Mises à jour automatiques depuis GitHub
-│   └── Parsedown.php                  # Analyseur Markdown pour la fenêtre « Voir les détails »
+│   ├── class-fsm-academies.php        # Académies data & département mapping
+│   ├── class-fsm-admin.php            # Admin settings page
+│   ├── class-fsm-local-db.php         # Local DB sync & REST helpers
+│   ├── class-fsm-rest-api.php         # REST API endpoints
+│   ├── class-github-updater.php       # GitHub auto-updates
+│   └── Parsedown.php                  # Markdown parser for the "View details" popup
 └── languages
-    ├── french-schools-map-fr_FR.mo    # Traduction française (binaire)
-    ├── french-schools-map-fr_FR.po    # Traduction française (source)
-    └── french-schools-map.pot         # Modèle de traduction
+    ├── french-schools-map-fr_FR.mo    # French translation (binary)
+    ├── french-schools-map-fr_FR.po    # French translation (source)
+    └── french-schools-map.pot         # Translation template
 ```
 
 ## Utilisation
@@ -177,7 +177,7 @@ Le bloc **French Schools Map** est disponible dans l'éditeur. Les mêmes param�
 
 Les données proviennent du portail Open Data du Ministère de l'Éducation Nationale :
 
-- **Jeu de données** : [Annuaire de l'éducation](https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/)
+- **Dataset** : [Annuaire de l'éducation](https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/)
 - **API** : OpenDataSoft API v2.1
 - **Fréquence** : Synchronisation mensuelle automatique
 - **Contours communaux** : [geo.api.gouv.fr](https://geo.api.gouv.fr/) (pour les zones colorées par circonscription)
@@ -208,7 +208,7 @@ La page **Réglages → French Schools Map** permet de :
 
 Le plugin expose des endpoints REST pour les développeurs :
 
-| Point de terminaison | Description |
+| Endpoint | Description |
 |----------|-------------|
 | `GET /wp-json/fsm/v1/markers` | Tous les marqueurs (format compact) |
 | `GET /wp-json/fsm/v1/schools` | Détails complets (utilisé auto. quand < 1 500 résultats) |
@@ -216,10 +216,10 @@ Le plugin expose des endpoints REST pour les développeurs :
 | `GET /wp-json/fsm/v1/departments` | Liste des départements |
 | `GET /wp-json/fsm/v1/academies` | Carte académies → départements |
 | `GET /wp-json/fsm/v1/circonscriptions` | Circonscriptions d'un département |
-| `GET /wp-json/fsm/v1/commune-circo-map` | Correspondance commune → circonscription |
+| `GET /wp-json/fsm/v1/commune-circo-map` | Mapping commune → circonscription |
 | `GET /wp-json/fsm/v1/stats` | Statistiques globales |
 
-### Paramètres de filtrage (points de terminaison des marqueurs)
+### Paramètres de filtrage (endpoint markers)
 
 - `types` : Type d'établissement (ex: `Ecole,Collège`)
 - `departement` : Nom du département
@@ -237,62 +237,58 @@ Le plugin gère ~69 000 points grâce à :
 - **Format compact** : les marqueurs sont transmis en tableaux d'arrays (pas d'objets JSON verbeux)
 - **Chargement asynchrone** : les détails ne sont récupérés qu'au clic sur un marqueur
 
-## Problèmes connus
+## Known Issues
 
 - La synchronisation initiale peut prendre plusieurs minutes selon les performances du serveur (téléchargement de ~69 000 enregistrements).
 - Sur les hébergements mutualisés avec un `max_execution_time` très court, la synchronisation peut échouer et nécessiter plusieurs tentatives.
 - Les zones de circonscription pour les communes sans école sont approximées par la circonscription la plus proche géographiquement.
 
-## Historique des versions
-
-### 1.5.1 - 2026-08-31
-
-- **Amélioration :** traduction en français de l’ensemble du README
+## Changelog
 
 ### 1.5.0 - 2026-08-31
 
-- **Correction :** Le fond de carte par défaut passe de CARTO (cartocdn.com) aux tuiles standard OpenStreetMap. CARTO refuse désormais les requêtes anonymes et affichait un filigrane « API KEY REQUIRED » sur toute la carte
-- **Nouveauté :** Prise en charge des fonds de carte CARTO via une clé API, avec un réglage **Fond de carte** (clé + choix du style Voyager / Positron / Dark Matter) et un lien direct vers <https://carto.com/basemaps/apikey/>
-- **Amélioration :** L'attribution du fond de carte est désormais construite côté serveur et suit le fournisseur réellement utilisé
+- **Fixed:** Le fond de carte par défaut passe de CARTO (cartocdn.com) aux tuiles standard OpenStreetMap. CARTO refuse désormais les requêtes anonymes et affichait un filigrane « API KEY REQUIRED » sur toute la carte
+- **New:** Prise en charge des fonds de carte CARTO via une clé API, avec un réglage **Fond de carte** (clé + choix du style Voyager / Positron / Dark Matter) et un lien direct vers <https://carto.com/basemaps/apikey/>
+- **Improved:** L'attribution du fond de carte est désormais construite côté serveur et suit le fournisseur réellement utilisé
 
 ### 1.4.0 - 2026-04-17
-- **Correction :** Erreur « Duplicate entry » lors de la synchronisation mensuelle — les identifiants en double dans le CSV source (ex. 9840265R en Polynésie Française) sont désormais gérés via `ON DUPLICATE KEY UPDATE`
-- **Amélioration :** Le popup « Voir les détails » affiche désormais un bandeau géométrique CSS (sans image externe) et prépend le changelog de la release GitHub lorsqu'une mise à jour est disponible
-- **Amélioration :** Ajout d'un log au démarrage de la synchronisation pour faciliter le débogage
+- **Fixed:** Erreur « Duplicate entry » lors de la synchronisation mensuelle — les identifiants en double dans le CSV source (ex. 9840265R en Polynésie Française) sont désormais gérés via `ON DUPLICATE KEY UPDATE`
+- **Improved:** Le popup « Voir les détails » affiche désormais un bandeau géométrique CSS (sans image externe) et prépend le changelog de la release GitHub lorsqu'une mise à jour est disponible
+- **Improved:** Ajout d'un log au démarrage de la synchronisation pour faciliter le débogage
 
 ### 1.3.8 - 2026-03-30
-- **Amélioration :** Réécriture du système de mise à jour GitHub : fenêtre « Voir les détails » avec onglets Description, Installation, FAQ et Changelog parsés depuis le README.md local (via Parsedown)
-- **Nouveauté :** Lien "Voir les détails" (thickbox) dans la liste des extensions
-- **Nouveauté :** Conversion des tableaux Markdown en structures div/span compatibles wp_kses
-- **Nouveauté :** Injection CSS via admin_head pour le style de la modale d'informations du plugin
+- **Improved:** Réécriture du système de mise à jour GitHub : popup "Voir les détails" avec onglets Description, Installation, FAQ et Changelog parsés depuis le README.md local (via Parsedown)
+- **New:** Lien "Voir les détails" (thickbox) dans la liste des extensions
+- **New:** Conversion des tableaux Markdown en structures div/span compatibles wp_kses
+- **New:** Injection CSS via admin_head pour le style de la modale d'informations du plugin
 
 ### 1.3.7 - 2026-03-09
-- **Amélioration :** Ajout du préfixe "Circonscription de " dans l'infobulle au survol des zones de circonscription sur la carte
+- **Improved:** Ajout du préfixe "Circonscription de " dans l'infobulle au survol des zones de circonscription sur la carte
 
 ### 1.3.6 - 2026-03-09
-- **Correction :** Correction d'une PHP Notice : suppression de l'appel de traduction dans le filtre cron_schedules pour éviter que _load_textdomain_just_in_time ne soit déclenché avant init.
+- **Fixed:** Correction d'une PHP Notice : suppression de l'appel de traduction dans le filtre cron_schedules pour éviter que _load_textdomain_just_in_time ne soit déclenché avant init.
 
 ### 1.3.5 - 2026-03-04
-- **Correction :** les attributs `statut`, `types` et `education_prioritaire` du shortcode sont désormais pris en compte (pré-sélection des filtres HTML côté serveur)
-- **Correction :** normalisation des noms de types dans le shortcode (ex. `Écoles` → `Ecole`, `Collèges` → `Collège`, `Lycées` → `Lycée`)
-- **Correction :** les valeurs `statut`, `types` et `education_prioritaire` de la configuration sont envoyées au REST API même lorsque les widgets de filtre sont masqués
-- **Nouveauté :** constructeur de shortcode interactif sur la page de réglages (génération et copie du shortcode en temps réel)
+- **Fixed:** les attributs `statut`, `types` et `education_prioritaire` du shortcode sont désormais pris en compte (pré-sélection des filtres HTML côté serveur)
+- **Fixed:** normalisation des noms de types dans le shortcode (ex. `Écoles` → `Ecole`, `Collèges` → `Collège`, `Lycées` → `Lycée`)
+- **Fixed:** les valeurs `statut`, `types` et `education_prioritaire` de la configuration sont envoyées au REST API même lorsque les widgets de filtre sont masqués
+- **New:** constructeur de shortcode interactif sur la page de réglages (génération et copie du shortcode en temps réel)
 
 ### 1.3.0 - 2026-03-04
 - **Transports en commun (Île-de-France)** : calque optionnel affichant les lignes de métro, RER, tramway et train ainsi que les gares/stations
   - Données officielles Île-de-France Mobilités (API Explore v2, Licence Ouverte)
   - Lignes colorées avec les couleurs officielles de chaque ligne
-  - Stations affichées en cercles avec infobulle au survol (nom + lignes desservies, ex. « RER E »)
+  - Stations affichées en cercles avec tooltip au survol (nom + lignes desservies, ex. « RER E »)
   - Bouton 🚇 dans la barre d'outils pour activer/désactiver
   - Attribut `show_transport` (défaut `false`) dans le shortcode et le bloc Gutenberg
 
 ### 1.2.0 - 2026-03-04
 - **Zones de circonscription IEN** : fond de couleur par circonscription affiché lorsqu'un département est sélectionné
   - Contours communaux via l'API geo.api.gouv.fr, colorés par circonscription
-  - Infobulle au survol avec le nom de la circonscription
+  - Tooltip au survol avec le nom de la circonscription
   - Les communes sans école sont assignées à la circonscription la plus proche
   - Attribut `show_circo_zones` (défaut `true`) pour activer/désactiver
-- Nouveau point de terminaison REST `GET /fsm/v1/commune-circo-map?departement=...`
+- Nouvel endpoint REST `GET /fsm/v1/commune-circo-map?departement=...`
 - Ajout de `code_commune` dans le schéma de la base de données
 - Correction du schéma DB lors de la synchronisation (appel `dbDelta` avant import)
 - Correction du cron : la prochaine synchronisation s'affiche correctement (1 mois après le dernier sync)
@@ -305,16 +301,16 @@ Le plugin gère ~69 000 points grâce à :
 - Ajout de la circonscription par défaut dans le bloc Gutenberg (s'affiche uniquement si un département est sélectionné)
 
 ### 1.1.1 - 2026-03-02
-- Affichage du nom de la circonscription (nettoyé) dans la fenêtre de détail de chaque école
+- Affichage du nom de la circonscription (nettoyé) dans la popup de détail de chaque école
 
 ### 1.1.0 - 2026-03-02
 - Ajout du filtre « Circonscription » : un menu déroulant apparaît automatiquement lorsqu'un département est sélectionné
 - Nettoyage automatique des noms de circonscriptions (suppression des préfixes « Circonscription d'inspection du 1er degré de/du/d' », etc.)
-- Nouveau point de terminaison REST `GET /fsm/v1/circonscriptions?departement=...`
-- Le paramètre `circonscription` est pris en charge par les points de terminaison `/markers` et `/schools`
+- Nouvel endpoint REST `GET /fsm/v1/circonscriptions?departement=...`
+- Le paramètre `circonscription` est pris en charge par les endpoints `/markers` et `/schools`
 
 ### 1.0.0
-- Version initiale
+- Initial release
 - Carte interactive avec Leaflet.js et OpenStreetMap
 - Filtres : type, statut, département, académie, éducation prioritaire
 - Recherche textuelle par nom ou ville
@@ -325,27 +321,27 @@ Le plugin gère ~69 000 points grâce à :
 - Géolocalisation (bouton "Me localiser")
 - Mises à jour automatiques depuis GitHub
 
-## Remerciements
+## Acknowledgements
 
 - [Leaflet.js](https://leafletjs.com/) — Bibliothèque cartographique
 - [Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster) — Plugin de clustering
 - [OpenStreetMap](https://www.openstreetmap.org/) — Tuiles cartographiques
 - [Ministère de l'Éducation Nationale](https://data.education.gouv.fr/) — Données open data
 
-## Sécurité
+## Security
 
-Si vous découvrez une vulnérabilité de sécurité dans cette extension, veuillez la signaler de manière responsable via les [avis de sécurité GitHub](https://github.com/guilamu/french-schools-map/security/advisories/new). N’ouvrez pas de ticket public pour les signalements de sécurité.
+If you discover a security vulnerability in this plugin, please report it responsibly through [GitHub Security Advisories](https://github.com/guilamu/french-schools-map/security/advisories/new). Do not open a public issue for security reports.
 
-## Contribution
+## Contributing
 
-Les contributions sont les bienvenues ! Ouvrez un ticket ou soumettez une demande de fusion sur [GitHub](https://github.com/guilamu/french-schools-map).
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/guilamu/french-schools-map).
 
-Pour les traductions, l’extension utilise l’internationalisation de WordPress. Vous pouvez contribuer en modifiant les fichiers `.po` du répertoire `languages/` et en générant les fichiers `.mo` correspondants avec les commandes CLI `wp i18n`.
+For translations, the plugin uses WordPress i18n. You can contribute translations by editing the `.po` files in the `languages/` directory and generating the corresponding `.mo` files with the `wp i18n` CLI commands.
 
-## Licence
+## License
 
-Ce projet est distribué sous licence GNU Affero General Public License v3.0 (AGPL-3.0). Consultez le fichier [LICENSE](LICENSE) pour plus de détails.
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-Conçu avec passion pour la communauté WordPress
+Made with love for the WordPress community

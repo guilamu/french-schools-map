@@ -133,6 +133,7 @@ class FSM_GitHub_Updater
     {
         add_filter('update_plugins_github.com', array(self::class, 'check_for_update'), 10, 4);
         add_filter('plugins_api', array(self::class, 'plugin_info'), 20, 3);
+        add_filter('plugins_api_result', array(self::class, 'finalize_plugin_info'), PHP_INT_MAX, 3);
         add_filter('upgrader_source_selection', array(self::class, 'fix_folder_name'), 10, 4);
         add_action('admin_head', array(self::class, 'plugin_info_css'));
     }
@@ -233,6 +234,64 @@ class FSM_GitHub_Updater
     }
 
     /**
+     * Rebuild the final plugin information object after all earlier filters.
+     *
+     * A third-party plugin's `plugins_api` filter that incorrectly returns
+     * `false` for slugs it does not own (instead of passing `$res` through)
+     * silently discards the object we built - core then falls back to
+     * wordpress.org, which does not know this slug and renders
+     * "Plugin not found.". Rebuilding a fresh object on `plugins_api_result`
+     * at the highest practical priority guarantees the modal always renders,
+     * even when an earlier filter corrupted or replaced our result.
+     *
+     * @param false|object|array $result Plugin API result.
+     * @param string             $action Requested action.
+     * @param object             $args   API arguments.
+     * @return false|object|array
+     */
+    public static function finalize_plugin_info($result, $action, $args)
+    {
+        if ('plugin_information' !== $action) {
+            return $result;
+        }
+
+        if (!isset($args->slug) || self::PLUGIN_SLUG !== $args->slug) {
+            return $result;
+        }
+
+        return self::plugin_info(false, $action, $args);
+    }
+
+    /**
+     * Get a package URL suitable for the plugin details footer action button.
+     *
+     * WordPress only renders the plugin-information footer button when the
+     * plugin info payload includes a non-empty download_link, even if the
+     * plugin is already installed and active. When the GitHub API is
+     * unreachable or rate-limited, fall back to the "latest release" asset URL.
+     *
+     * @param array|null $release_data Release data from GitHub API.
+     * @return string
+     */
+    private static function get_plugin_info_download_link(?array $release_data = null): string
+    {
+        if (is_array($release_data)) {
+            $package_url = self::get_package_url($release_data);
+
+            if ('' !== $package_url) {
+                return $package_url;
+            }
+        }
+
+        return sprintf(
+            'https://github.com/%s/%s/releases/latest/download/%s.zip',
+            self::GITHUB_USER,
+            self::GITHUB_REPO,
+            self::GITHUB_REPO
+        );
+    }
+
+    /**
      * Check for plugin updates from GitHub.
      *
      * @param array|false $update      The plugin update data.
@@ -327,9 +386,12 @@ class FSM_GitHub_Updater
         $res->tested       = get_bloginfo('version');
         $res->requires_php = self::REQUIRES_PHP;
 
+        // Always non-empty: WordPress only renders the modal footer action
+        // button (Active / Activate / Update) when download_link is set.
+        $res->download_link = self::get_plugin_info_download_link($release_data);
+
         if ($release_data) {
-            $res->download_link = self::get_package_url($release_data);
-            $res->last_updated  = $release_data['published_at'] ?? '';
+            $res->last_updated = $release_data['published_at'] ?? '';
         }
 
         // Build sections from local README.md.

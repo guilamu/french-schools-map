@@ -1,8 +1,8 @@
 # French Schools Map
 
-Extension WordPress affichant une carte interactive des établissements scolaires français, basée sur **OpenStreetMap** (Leaflet.js) et alimentée par les données **open data** du Ministère de l'Éducation Nationale.
+[![Latest Release](https://img.shields.io/github/v/release/guilamu/french-schools-map?color=blue)](https://github.com/guilamu/french-schools-map/releases) [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-green.svg)](LICENSE) [![WordPress: 5.8+](https://img.shields.io/badge/WordPress-5.8%2B-blue.svg)](https://wordpress.org) [![PHP: 7.4+](https://img.shields.io/badge/PHP-7.4%2B-purple.svg)](https://php.net)
 
-![WordPress](https://img.shields.io/badge/WordPress-5.8%2B-blue) ![PHP](https://img.shields.io/badge/PHP-7.4%2B-purple) ![License](https://img.shields.io/badge/License-AGPL--3.0-green)
+Carte interactive des établissements scolaires français, alimentée par les données open data du Ministère de l'Éducation Nationale.
 
 ## Description
 
@@ -26,7 +26,7 @@ Ce plugin affiche une carte interactive des ~69 000 établissements scolaires fr
 ## Key Features
 
 - **Open Data:** Données officielles du Ministère de l'Éducation Nationale (~69 000 établissements)
-- **No API Key:** OpenStreetMap/Leaflet.js — aucune clé API requise
+- **No API Key:** OpenStreetMap/Leaflet.js par défaut — aucune clé API requise (une clé CARTO gratuite est possible en option)
 - **Multilingual:** Fonctionne avec tout contenu linguistique
 - **Translation-Ready:** Toutes les chaînes sont internationalisées
 - **Secure:** Requêtes REST authentifiées par nonce WordPress, données sanitisées
@@ -51,7 +51,7 @@ Ce plugin affiche une carte interactive des ~69 000 établissements scolaires fr
 Vérifiez que la synchronisation a bien été effectuée : allez dans **Réglages → French Schools Map** et cliquez sur "Synchroniser maintenant". La première synchronisation peut prendre quelques minutes.
 
 ### Le plugin nécessite-t-il une clé API ?
-Non. Le plugin utilise OpenStreetMap (gratuit, sans clé API) pour les tuiles cartographiques et l'API Open Data du Ministère de l'Éducation Nationale (également gratuite et sans clé).
+Non par défaut : tuiles OpenStreetMap et API Open Data, toutes deux gratuites et sans clé. Une clé CARTO (gratuite, sur <https://carto.com/basemaps/apikey/>) n'est requise que pour les fonds Voyager, Positron ou Dark Matter, qui affichent sinon un filigrane « API KEY REQUIRED ».
 
 ### `departement` et `academie` sont-ils cumulables ?
 Non. Si les deux sont renseignés, `departement` est prioritaire. La valeur configurée dans les réglages globaux prend également le dessus sur les attributs du bloc Gutenberg pour éviter des affichages incohérents.
@@ -71,21 +71,28 @@ Les données sont synchronisées automatiquement chaque mois depuis l'Annuaire d
 
 ```
 .
-├── french-schools-map.php        # Main plugin file
-├── uninstall.php                 # Cleanup on uninstall
+├── french-schools-map.php             # Main plugin file (shortcode, block, basemap resolution)
+├── uninstall.php                      # Cleanup on uninstall
 ├── README.md
 ├── assets
 │   ├── css
-│   │   └── fsm-map.css           # Frontend map styles
+│   │   ├── fsm-admin.css              # Admin settings page styles
+│   │   └── fsm-map.css                # Frontend map styles
 │   └── js
-│       ├── fsm-map.js            # Frontend map logic (Leaflet)
-│       └── fsm-block.js          # Gutenberg block editor script
-└── includes
-    ├── class-fsm-academies.php   # Académies data & département mapping
-    ├── class-fsm-admin.php       # Admin settings page
-    ├── class-fsm-local-db.php    # Local DB sync & REST helpers
-    ├── class-fsm-rest-api.php    # REST API endpoints
-    └── class-github-updater.php  # GitHub auto-updates
+│       ├── fsm-admin.js               # Admin settings page script
+│       ├── fsm-block.js               # Gutenberg block editor script
+│       └── fsm-map.js                 # Frontend map logic (Leaflet)
+├── includes
+│   ├── class-fsm-academies.php        # Académies data & département mapping
+│   ├── class-fsm-admin.php            # Admin settings page
+│   ├── class-fsm-local-db.php         # Local DB sync & REST helpers
+│   ├── class-fsm-rest-api.php         # REST API endpoints
+│   ├── class-github-updater.php       # GitHub auto-updates
+│   └── Parsedown.php                  # Markdown parser for the "View details" popup
+└── languages
+    ├── french-schools-map-fr_FR.mo    # French translation (binary)
+    ├── french-schools-map-fr_FR.po    # French translation (source)
+    └── french-schools-map.pot         # Translation template
 ```
 
 ## Utilisation
@@ -119,7 +126,7 @@ Les données sont synchronisées automatiquement chaque mois depuis l'Annuaire d
 | `show_circo_zones` | `true` | Afficher les zones colorées par circonscription IEN |
 | `cluster` | `true` | Activer le clustering des marqueurs |
 | `max_zoom` | `18` | Zoom maximal |
-| `tile_url` | _(vide)_ | URL personnalisée pour les tuiles cartographiques |
+| `tile_url` | _(vide)_ | URL personnalisée pour les tuiles cartographiques (prioritaire sur le fond de carte des réglages) |
 
 > **Note :** `departement` et `academie` sont mutuellement exclusifs. Si les deux sont renseignés, `departement` est prioritaire.
 
@@ -148,6 +155,19 @@ Carte d'un département avec zones de circonscription :
 ### Réglages par défaut
 
 Dans **Réglages → French Schools Map**, vous pouvez définir un département ou une académie par défaut. Ces valeurs seront utilisées automatiquement si le shortcode ne précise rien.
+
+### Fond de carte
+
+Toujours dans **Réglages → French Schools Map**, section **Fond de carte** :
+
+| Réglage | Rôle |
+| --- | --- |
+| Clé API CARTO | Laissée vide, la carte utilise OpenStreetMap. Renseignée, elle active les fonds CARTO. [Obtenir une clé gratuite](https://carto.com/basemaps/apikey/) |
+| Style CARTO | Voyager, Positron (gris clair) ou Dark Matter, avec ou sans libellés. Utilisé uniquement si une clé est renseignée |
+
+Ordre de priorité du fond de carte : attribut `tile_url` du shortcode > CARTO (si une clé est enregistrée) > OpenStreetMap.
+
+La clé est transmise au navigateur des visiteurs à chaque requête de tuile, comme toute clé de fond de carte côté client : restreignez-la à votre domaine depuis votre compte CARTO.
 
 ### Bloc Gutenberg
 
@@ -225,28 +245,37 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.5.0 - 2026-08-31
+
+- **Fixed:** Le fond de carte par défaut passe de CARTO (cartocdn.com) aux tuiles standard OpenStreetMap. CARTO refuse désormais les requêtes anonymes et affichait un filigrane « API KEY REQUIRED » sur toute la carte
+- **New:** Prise en charge des fonds de carte CARTO via une clé API, avec un réglage **Fond de carte** (clé + choix du style Voyager / Positron / Dark Matter) et un lien direct vers <https://carto.com/basemaps/apikey/>
+- **Improved:** L'attribution du fond de carte est désormais construite côté serveur et suit le fournisseur réellement utilisé
+- **Fixed:** Le popup « Voir les détails » est reconstruit sur `plugins_api_result` (priorité `PHP_INT_MAX`) : un filtre `plugins_api` tiers renvoyant `false` ne peut plus provoquer un « Plugin not found »
+- **Fixed:** `download_link` n'est plus vide lorsque l'API GitHub est injoignable, le bouton d'action du popup s'affiche donc toujours
+- **Improved:** README aligné sur `README.Reference.md` (badges, sections Security / Contributing / Acknowledgements, arborescence complète)
+
 ### 1.4.0 - 2026-04-17
-- **Corrigé :** Erreur « Duplicate entry » lors de la synchronisation mensuelle — les identifiants en double dans le CSV source (ex. 9840265R en Polynésie Française) sont désormais gérés via `ON DUPLICATE KEY UPDATE`
-- **Amélioration :** Le popup « Voir les détails » affiche désormais un bandeau géométrique CSS (sans image externe) et prépend le changelog de la release GitHub lorsqu'une mise à jour est disponible
-- **Amélioration :** Ajout d'un log au démarrage de la synchronisation pour faciliter le débogage
+- **Fixed:** Erreur « Duplicate entry » lors de la synchronisation mensuelle — les identifiants en double dans le CSV source (ex. 9840265R en Polynésie Française) sont désormais gérés via `ON DUPLICATE KEY UPDATE`
+- **Improved:** Le popup « Voir les détails » affiche désormais un bandeau géométrique CSS (sans image externe) et prépend le changelog de la release GitHub lorsqu'une mise à jour est disponible
+- **Improved:** Ajout d'un log au démarrage de la synchronisation pour faciliter le débogage
 
 ### 1.3.8 - 2026-03-30
-- **Amélioration :** Réécriture du système de mise à jour GitHub : popup "Voir les détails" avec onglets Description, Installation, FAQ et Changelog parsés depuis le README.md local (via Parsedown)
-- **Ajouté :** Lien "Voir les détails" (thickbox) dans la liste des extensions
-- **Ajouté :** Conversion des tableaux Markdown en structures div/span compatibles wp_kses
-- **Ajouté :** Injection CSS via admin_head pour le style de la modale d'informations du plugin
+- **Improved:** Réécriture du système de mise à jour GitHub : popup "Voir les détails" avec onglets Description, Installation, FAQ et Changelog parsés depuis le README.md local (via Parsedown)
+- **New:** Lien "Voir les détails" (thickbox) dans la liste des extensions
+- **New:** Conversion des tableaux Markdown en structures div/span compatibles wp_kses
+- **New:** Injection CSS via admin_head pour le style de la modale d'informations du plugin
 
 ### 1.3.7 - 2026-03-09
-- **Amélioration :** Ajout du préfixe "Circonscription de " dans l'infobulle au survol des zones de circonscription sur la carte
+- **Improved:** Ajout du préfixe "Circonscription de " dans l'infobulle au survol des zones de circonscription sur la carte
 
 ### 1.3.6 - 2026-03-09
-- **Corrigé :** Correction d'une PHP Notice : suppression de l'appel de traduction dans le filtre cron_schedules pour éviter que _load_textdomain_just_in_time ne soit déclenché avant init.
+- **Fixed:** Correction d'une PHP Notice : suppression de l'appel de traduction dans le filtre cron_schedules pour éviter que _load_textdomain_just_in_time ne soit déclenché avant init.
 
 ### 1.3.5 - 2026-03-04
-- **Corrigé :** les attributs `statut`, `types` et `education_prioritaire` du shortcode sont désormais pris en compte (pré-sélection des filtres HTML côté serveur)
-- **Corrigé :** normalisation des noms de types dans le shortcode (ex. `Écoles` → `Ecole`, `Collèges` → `Collège`, `Lycées` → `Lycée`)
-- **Corrigé :** les valeurs `statut`, `types` et `education_prioritaire` de la configuration sont envoyées au REST API même lorsque les widgets de filtre sont masqués
-- **Ajouté :** constructeur de shortcode interactif sur la page de réglages (génération et copie du shortcode en temps réel)
+- **Fixed:** les attributs `statut`, `types` et `education_prioritaire` du shortcode sont désormais pris en compte (pré-sélection des filtres HTML côté serveur)
+- **Fixed:** normalisation des noms de types dans le shortcode (ex. `Écoles` → `Ecole`, `Collèges` → `Collège`, `Lycées` → `Lycée`)
+- **Fixed:** les valeurs `statut`, `types` et `education_prioritaire` de la configuration sont envoyées au REST API même lorsque les widgets de filtre sont masqués
+- **New:** constructeur de shortcode interactif sur la page de réglages (génération et copie du shortcode en temps réel)
 
 ### 1.3.0 - 2026-03-04
 - **Transports en commun (Île-de-France)** : calque optionnel affichant les lignes de métro, RER, tramway et train ainsi que les gares/stations
@@ -295,19 +324,27 @@ Le plugin gère ~69 000 points grâce à :
 - Géolocalisation (bouton "Me localiser")
 - Mises à jour automatiques depuis GitHub
 
-## License
-
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
-
-## Crédits
+## Acknowledgements
 
 - [Leaflet.js](https://leafletjs.com/) — Bibliothèque cartographique
 - [Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster) — Plugin de clustering
 - [OpenStreetMap](https://www.openstreetmap.org/) — Tuiles cartographiques
 - [Ministère de l'Éducation Nationale](https://data.education.gouv.fr/) — Données open data
 
+## Security
+
+If you discover a security vulnerability in this plugin, please report it responsibly through [GitHub Security Advisories](https://github.com/guilamu/french-schools-map/security/advisories/new). Do not open a public issue for security reports.
+
+## Contributing
+
+Contributions are welcome! Please open an issue or submit a pull request on [GitHub](https://github.com/guilamu/french-schools-map).
+
+For translations, the plugin uses WordPress i18n. You can contribute translations by editing the `.po` files in the `languages/` directory and generating the corresponding `.mo` files with the `wp i18n` CLI commands.
+
+## License
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0) - see the [LICENSE](LICENSE) file for details.
+
 ---
 
-<p align="center">
-  Made with love for the WordPress community
-</p>
+Made with love for the WordPress community

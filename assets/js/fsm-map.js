@@ -219,12 +219,17 @@
         });
 
         // Tile layer.
-        var tileUrl = this.config.tileUrl || 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png';
-        var attribution = this.config.tileUrl
-            ? ''
-            : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
+        // The URL, attribution and subdomains are resolved server-side by
+        // fsm_get_basemap(): custom tile_url > CARTO (when an API key is saved
+        // in the settings) > OpenStreetMap standard tiles. The OSM values below
+        // are only a fallback for a config predating that resolution.
+        var tileUrl = this.config.tileUrl || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+        var attribution = typeof this.config.tileAttribution === 'string'
+            ? this.config.tileAttribution
+            : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
         L.tileLayer(tileUrl, {
             attribution: attribution,
+            subdomains: this.config.tileSubdomains || 'abc',
             maxZoom: this.config.maxZoom,
         }).addTo(this.map);
 

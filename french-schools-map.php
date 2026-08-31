@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.4.0
+ * Version: 1.5.0
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.4.0');
+define('FSM_VERSION', '1.5.0');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -140,6 +140,71 @@ if (is_admin()) {
 add_shortcode('french_schools_map', 'fsm_render_shortcode');
 
 /**
+ * Available CARTO raster basemap styles.
+ *
+ * @return array Style slug => human label.
+ */
+function fsm_carto_styles()
+{
+    return array(
+        'voyager'          => __('Voyager (colour, default)', 'french-schools-map'),
+        'voyager_nolabels' => __('Voyager without labels', 'french-schools-map'),
+        'light_all'        => __('Positron (light grey)', 'french-schools-map'),
+        'light_nolabels'   => __('Positron without labels', 'french-schools-map'),
+        'dark_all'         => __('Dark Matter (dark)', 'french-schools-map'),
+        'dark_nolabels'    => __('Dark Matter without labels', 'french-schools-map'),
+    );
+}
+
+/**
+ * Resolve the basemap tile layer to use.
+ *
+ * Priority: explicit tile_url shortcode attribute > CARTO (when an API key is
+ * saved in the plugin settings) > OpenStreetMap standard tiles.
+ *
+ * CARTO basemaps now require an API key: without one the tiles come back
+ * stamped "API KEY REQUIRED". A free key is issued at
+ * https://carto.com/basemaps/apikey/.
+ *
+ * @param string $custom_url Optional tile_url shortcode attribute.
+ * @return array Tile URL template, attribution HTML and subdomains.
+ */
+function fsm_get_basemap($custom_url = '')
+{
+    $osm_attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
+    if ($custom_url !== '') {
+        return array(
+            'url'         => $custom_url,
+            'attribution' => '',
+            'subdomains'  => 'abc',
+        );
+    }
+
+    $key = trim((string) get_option('fsm_carto_api_key', ''));
+
+    if ($key !== '') {
+        $style  = (string) get_option('fsm_carto_style', 'voyager');
+        $styles = fsm_carto_styles();
+        if (!isset($styles[$style])) {
+            $style = 'voyager';
+        }
+
+        return array(
+            'url'         => 'https://{s}.basemaps.cartocdn.com/rastertiles/' . $style . '/{z}/{x}/{y}.png?key=' . rawurlencode($key),
+            'attribution' => $osm_attribution . ' &copy; <a href="https://carto.com/attributions">CARTO</a>',
+            'subdomains'  => 'abcd',
+        );
+    }
+
+    return array(
+        'url'         => 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+        'attribution' => $osm_attribution,
+        'subdomains'  => 'abc',
+    );
+}
+
+/**
  * Render the [french_schools_map] shortcode.
  *
  * @param array $atts Shortcode attributes.
@@ -240,6 +305,7 @@ function fsm_render_shortcode($atts = array())
     $show_f_ep       = filter_var($atts['show_filter_ep'], FILTER_VALIDATE_BOOLEAN);
 
     // Build data attributes.
+    $basemap  = fsm_get_basemap(trim((string) $atts['tile_url']));
     $map_id   = 'fsm-map-' . wp_unique_id();
     $config   = array(
         'centerLat'             => (float) $atts['center_lat'],
@@ -256,7 +322,9 @@ function fsm_render_shortcode($atts = array())
         'showFilters'           => $show_filters,
         'showSearch'            => $show_search,
         'cluster'               => $cluster,
-        'tileUrl'               => $atts['tile_url'],
+        'tileUrl'               => $basemap['url'],
+        'tileAttribution'       => $basemap['attribution'],
+        'tileSubdomains'        => $basemap['subdomains'],
         'showCircoZones'        => $show_circo,
         'showTransport'         => filter_var($atts['show_transport'], FILTER_VALIDATE_BOOLEAN),
         'restUrl'               => esc_url_raw(rest_url('fsm/v1/')),

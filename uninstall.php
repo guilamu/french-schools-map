@@ -32,6 +32,8 @@ delete_option('fsm_default_academie');
 delete_option('fsm_default_types');
 delete_option('fsm_default_statut');
 delete_option('fsm_default_ep');
+delete_option('fsm_carto_api_key');
+delete_option('fsm_carto_style');
 
 // Unschedule cron.
 $timestamp = wp_next_scheduled('fsm_monthly_sync');

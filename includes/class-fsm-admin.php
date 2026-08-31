@@ -88,6 +88,17 @@ class FSM_Admin
         register_setting('fsm_settings', 'fsm_default_types',       $text_field);
         register_setting('fsm_settings', 'fsm_default_statut',      $text_field);
         register_setting('fsm_settings', 'fsm_default_ep',          $text_field);
+
+        register_setting('fsm_settings', 'fsm_carto_api_key', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => '',
+        ));
+        register_setting('fsm_settings', 'fsm_carto_style', array(
+            'type'              => 'string',
+            'sanitize_callback' => 'sanitize_text_field',
+            'default'           => 'voyager',
+        ));
     }
 
     /**
@@ -103,6 +114,13 @@ class FSM_Admin
             $statut = sanitize_text_field($_POST['fsm_default_statut']      ?? 'all');
             $ep     = sanitize_text_field($_POST['fsm_default_ep']          ?? 'all');
 
+            // Basemap: CARTO API key + style.
+            $carto_key   = sanitize_text_field($_POST['fsm_carto_api_key'] ?? '');
+            $carto_style = sanitize_text_field($_POST['fsm_carto_style']   ?? 'voyager');
+            if (!array_key_exists($carto_style, fsm_carto_styles())) {
+                $carto_style = 'voyager';
+            }
+
             // Mutual exclusion: if académie is set, clear département and vice-versa.
             if ($acad !== 'all') {
                 $dept = 'all';
@@ -113,6 +131,8 @@ class FSM_Admin
             update_option('fsm_default_types',       $types);
             update_option('fsm_default_statut',      $statut);
             update_option('fsm_default_ep',          $ep);
+            update_option('fsm_carto_api_key',       trim($carto_key));
+            update_option('fsm_carto_style',         $carto_style);
 
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved.', 'french-schools-map') . '</p></div>';
         }
@@ -124,6 +144,8 @@ class FSM_Admin
         $saved_types  = get_option('fsm_default_types',       'all');
         $saved_statut = get_option('fsm_default_statut',      'all');
         $saved_ep     = get_option('fsm_default_ep',          'all');
+        $carto_key    = get_option('fsm_carto_api_key', '');
+        $carto_style  = get_option('fsm_carto_style',   'voyager');
         $academies    = FSM_Academies::get_names();
         $departments  = FSM_Local_DB::has_data() ? FSM_Local_DB::get_departments() : array();
 ?>
@@ -341,6 +363,42 @@ class FSM_Admin
                                     <option value="REP" <?php selected($saved_ep, 'REP'); ?>>REP</option>
                                     <option value="REP+" <?php selected($saved_ep, 'REP+'); ?>>REP+</option>
                                 </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="padding-left:0;padding-bottom:0;">
+                                <h3 style="margin:20px 0 0;"><?php esc_html_e('Basemap', 'french-schools-map'); ?></h3>
+                                <p class="description" style="font-weight:400;">
+                                    <?php esc_html_e('Without a CARTO key the map uses the standard OpenStreetMap tiles, which are free and need no key. CARTO basemaps (Voyager, Positron, Dark Matter) now refuse anonymous requests and display an "API KEY REQUIRED" watermark, so a key is required to use them.', 'french-schools-map'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="fsm_carto_api_key"><?php esc_html_e('CARTO API key', 'french-schools-map'); ?></label></th>
+                            <td>
+                                <input type="text" name="fsm_carto_api_key" id="fsm_carto_api_key" class="regular-text code"
+                                    value="<?php echo esc_attr($carto_key); ?>" autocomplete="off" spellcheck="false"
+                                    placeholder="<?php esc_attr_e('Leave empty to use OpenStreetMap', 'french-schools-map'); ?>">
+                                <p class="description">
+                                    <a href="https://carto.com/basemaps/apikey/" target="_blank" rel="noopener noreferrer">
+                                        <?php esc_html_e('Get a free CARTO Basemaps API key', 'french-schools-map'); ?> &#8599;
+                                    </a>
+                                    &mdash; <?php esc_html_e('the key is emailed to you and is then pasted here.', 'french-schools-map'); ?>
+                                </p>
+                                <p class="description">
+                                    <?php esc_html_e('Note: this key is sent to the browser of every visitor with each tile request, as any client-side basemap key is. Restrict it to your domain in your CARTO account.', 'french-schools-map'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="fsm_carto_style"><?php esc_html_e('CARTO style', 'french-schools-map'); ?></label></th>
+                            <td>
+                                <select name="fsm_carto_style" id="fsm_carto_style">
+                                    <?php foreach (fsm_carto_styles() as $style_slug => $style_label) : ?>
+                                        <option value="<?php echo esc_attr($style_slug); ?>" <?php selected($carto_style, $style_slug); ?>><?php echo esc_html($style_label); ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <p class="description"><?php esc_html_e('Only used when an API key is set. "Positron (light grey)" is the neutral background that shows coloured zones best.', 'french-schools-map'); ?></p>
                             </td>
                         </tr>
                     </table>

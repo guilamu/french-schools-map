@@ -4,7 +4,7 @@
 # Guilamu <guilamu@github.com>, 2026.
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.4.0\n"
+"Project-Id-Version: French Schools Map 1.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
 "POT-Creation-Date: 2026-04-17T14:15:00+02:00\n"
 "PO-Revision-Date: 2026-04-17 14:18+0200\n"
@@ -447,3 +447,49 @@ msgstr "Masquer les transports en commun"
 #: assets/js/fsm-block.js
 msgid "Show public transport overlay on the map."
 msgstr "Affiche un calque transports en commun sur la carte."
+
+# Basemap settings (1.5.0)
+msgid "Basemap"
+msgstr "Fond de carte"
+
+msgid "Without a CARTO key the map uses the standard OpenStreetMap tiles, which are free and need no key. CARTO basemaps (Voyager, Positron, Dark Matter) now refuse anonymous requests and display an \"API KEY REQUIRED\" watermark, so a key is required to use them."
+msgstr "Sans clé CARTO, la carte utilise les tuiles standard OpenStreetMap, gratuites et sans clé. Les fonds CARTO (Voyager, Positron, Dark Matter) refusent désormais les requêtes anonymes et affichent un filigrane « API KEY REQUIRED » : une clé est donc nécessaire pour les utiliser."
+
+msgid "CARTO API key"
+msgstr "Clé API CARTO"
+
+msgid "Leave empty to use OpenStreetMap"
+msgstr "Laisser vide pour utiliser OpenStreetMap"
+
+msgid "Get a free CARTO Basemaps API key"
+msgstr "Obtenir une clé API CARTO Basemaps gratuite"
+
+msgid "the key is emailed to you and is then pasted here."
+msgstr "la clé vous est envoyée par e-mail, puis collée ici."
+
+msgid "Note: this key is sent to the browser of every visitor with each tile request, as any client-side basemap key is. Restrict it to your domain in your CARTO account."
+msgstr "Note : cette clé est transmise au navigateur de chaque visiteur à chaque requête de tuile, comme toute clé de fond de carte côté client. Restreignez-la à votre domaine depuis votre compte CARTO."
+
+msgid "CARTO style"
+msgstr "Style CARTO"
+
+msgid "Only used when an API key is set. \"Positron (light grey)\" is the neutral background that shows coloured zones best."
+msgstr "Utilisé uniquement si une clé API est renseignée. « Positron (gris clair) » est le fond neutre qui met le mieux en valeur les zones colorées."
+
+msgid "Voyager (colour, default)"
+msgstr "Voyager (couleur, par défaut)"
+
+msgid "Voyager without labels"
+msgstr "Voyager sans libellés"
+
+msgid "Positron (light grey)"
+msgstr "Positron (gris clair)"
+
+msgid "Positron without labels"
+msgstr "Positron sans libellés"
+
+msgid "Dark Matter (dark)"
+msgstr "Dark Matter (sombre)"
+
+msgid "Dark Matter without labels"
+msgstr "Dark Matter sans libellés"

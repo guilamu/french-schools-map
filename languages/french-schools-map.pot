@@ -2,7 +2,7 @@
 # This file is distributed under the GNU Affero General Public License v3.0 (AGPL-3.0).
 msgid ""
 msgstr ""
-"Project-Id-Version: French Schools Map 1.4.0\n"
+"Project-Id-Version: French Schools Map 1.5.0\n"
 "Report-Msgid-Bugs-To: https://github.com/guilamu/french-schools-map/issues\n"
 "POT-Creation-Date: 2026-04-17T14:15:00+02:00\n"
 "MIME-Version: 1.0\n"
@@ -429,4 +429,50 @@ msgstr ""
 
 #: assets/js/fsm-block.js
 msgid "Show public transport overlay on the map."
+msgstr ""
+
+# Basemap settings (1.5.0)
+msgid "Basemap"
+msgstr ""
+
+msgid "Without a CARTO key the map uses the standard OpenStreetMap tiles, which are free and need no key. CARTO basemaps (Voyager, Positron, Dark Matter) now refuse anonymous requests and display an \"API KEY REQUIRED\" watermark, so a key is required to use them."
+msgstr ""
+
+msgid "CARTO API key"
+msgstr ""
+
+msgid "Leave empty to use OpenStreetMap"
+msgstr ""
+
+msgid "Get a free CARTO Basemaps API key"
+msgstr ""
+
+msgid "the key is emailed to you and is then pasted here."
+msgstr ""
+
+msgid "Note: this key is sent to the browser of every visitor with each tile request, as any client-side basemap key is. Restrict it to your domain in your CARTO account."
+msgstr ""
+
+msgid "CARTO style"
+msgstr ""
+
+msgid "Only used when an API key is set. \"Positron (light grey)\" is the neutral background that shows coloured zones best."
+msgstr ""
+
+msgid "Voyager (colour, default)"
+msgstr ""
+
+msgid "Voyager without labels"
+msgstr ""
+
+msgid "Positron (light grey)"
+msgstr ""
+
+msgid "Positron without labels"
+msgstr ""
+
+msgid "Dark Matter (dark)"
+msgstr ""
+
+msgid "Dark Matter without labels"
 msgstr ""

@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.5.0
+ * Version: 1.5.1
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,7 +20,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.5.0');
+define('FSM_VERSION', '1.5.1');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
@@ -130,6 +130,10 @@ function fsm_plugin_row_meta($links, $file)
 
 // ─── Init REST API ───────────────────────────────────────────────────
 add_action('rest_api_init', array('FSM_REST_API', 'register_routes'));
+
+// Restores parameters sent base64url-packed to get past WAFs that reject
+// apostrophes in query strings. See FSM_REST_API::unpack_params().
+add_filter('rest_pre_dispatch', array('FSM_REST_API', 'unpack_params'), 10, 3);
 
 // ─── Admin ───────────────────────────────────────────────────────────
 if (is_admin()) {

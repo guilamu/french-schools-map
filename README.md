@@ -245,6 +245,11 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.5.1 - 2026-09-01
+
+- **Fixed:** Filtre par circonscription et recherche renvoyaient « Erreur de chargement. » sur les sites protégés par un pare-feu applicatif (BulletProof Security, Wordfence, mod_security) : ces WAF renvoient un 403 dès qu'une apostrophe apparaît dans la query string, ce que déclenchent les noms français (« Circonscription d'inspection du 1er degré d'Auterive », commune « L'Union », département « Côte-d'Or »). La query string concernée est désormais transmise encodée en base64url et décodée côté serveur avant validation
+- **Fixed:** Alignement du titre « Fond de carte » sur la colonne des libellés dans la page de réglages
+
 ### 1.5.0 - 2026-08-31
 
 - **Fixed:** Le fond de carte par défaut passe de CARTO (cartocdn.com) aux tuiles standard OpenStreetMap. CARTO refuse désormais les requêtes anonymes et affichait un filigrane « API KEY REQUIRED » sur toute la carte

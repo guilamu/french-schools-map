@@ -94,8 +94,35 @@
         var url = base + path;
         var qs = params ? new URLSearchParams(params).toString() : '';
         if (!qs) return url;
+        qs = packIfNeeded(qs);
         // If base already contains '?' (plain permalinks), append with '&'.
         return url + (url.indexOf('?') !== -1 ? '&' : '?') + qs;
+    }
+
+    // ── Helper: work around WAFs that reject apostrophes in query strings ─
+    // Firewalls such as BulletProof Security, Wordfence or mod_security answer
+    // 403 to any query string containing an apostrophe, as a SQL-injection
+    // heuristic. French names trip it constantly ("Circonscription d'inspection
+    // du 1er degré d'Auterive", the commune "L'Union"), which breaks the
+    // circonscription filter and the search box.
+    //
+    // Only that case is rewritten: the whole query string is base64url-encoded
+    // into a single fsm_p parameter, which FSM_REST_API::unpack_params()
+    // expands back into normal parameters before validation. Ordinary requests
+    // keep readable URLs.
+    function packIfNeeded(qs) {
+        if (qs.indexOf('%27') === -1) return qs;
+        try {
+            // qs is already percent-encoded, hence pure ASCII: btoa() is safe.
+            var packed = btoa(qs)
+                .replace(/\+/g, '-')
+                .replace(/\//g, '_')
+                .replace(/=+$/, '');
+            return 'fsm_p=' + packed;
+        } catch (e) {
+            // btoa() unavailable or failed — send the query string as-is.
+            return qs;
+        }
     }
 
     // ── Helper: parse a fetch response as JSON, rejecting on HTTP errors ─

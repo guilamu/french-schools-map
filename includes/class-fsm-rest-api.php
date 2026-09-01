@@ -15,6 +15,68 @@ class FSM_REST_API
     const REST_NAMESPACE = 'fsm/v1';
 
     /**
+     * Name of the parameter carrying a base64url-packed query string.
+     */
+    const PACKED_PARAM = 'fsm_p';
+
+    /**
+     * Unpack a base64url-encoded query string into normal request parameters.
+     *
+     * Web application firewalls (BulletProof Security, Wordfence, mod_security)
+     * commonly return a 403 for any apostrophe in a query string, as a
+     * SQL-injection heuristic. French place names trip it constantly:
+     * "Circonscription d'inspection du 1er degre d'Auterive", the commune
+     * "L'Union"... The frontend therefore falls back to sending the whole
+     * query string base64url-encoded in a single parameter whenever it
+     * contains an apostrophe; this filter restores the real parameters.
+     *
+     * Runs on rest_pre_dispatch, i.e. before route matching and before
+     * argument validation, so every param still goes through its own
+     * sanitize_callback exactly as if it had been sent in clear.
+     *
+     * @param mixed           $result  Response to short-circuit with, if any.
+     * @param WP_REST_Server  $server  Server instance.
+     * @param WP_REST_Request $request Current request.
+     * @return mixed Untouched $result.
+     */
+    public static function unpack_params($result, $server, $request)
+    {
+        if (!($request instanceof WP_REST_Request)) {
+            return $result;
+        }
+
+        // Only ever act on this plugin's own routes.
+        if (0 !== strpos((string) $request->get_route(), '/' . self::REST_NAMESPACE . '/')) {
+            return $result;
+        }
+
+        $packed = $request->get_param(self::PACKED_PARAM);
+        if (!is_string($packed) || '' === $packed) {
+            return $result;
+        }
+
+        $decoded = base64_decode(strtr($packed, '-_', '+/'), true);
+        if (false === $decoded) {
+            return $result;
+        }
+
+        $params = array();
+        parse_str($decoded, $params);
+
+        foreach ($params as $key => $value) {
+            // Scalars only, and never let the payload redefine itself.
+            if (self::PACKED_PARAM === $key || !is_scalar($value)) {
+                continue;
+            }
+            $request->set_param($key, (string) $value);
+        }
+
+        $request->set_param(self::PACKED_PARAM, null);
+
+        return $result;
+    }
+
+    /**
      * Register all REST routes.
      */
     public static function register_routes()

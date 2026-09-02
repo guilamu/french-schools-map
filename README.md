@@ -245,6 +245,17 @@ Le plugin gère ~69 000 points grâce à :
 
 ## Changelog
 
+### 1.5.2 - 2026-09-02
+
+- **Fixed:** Le popup « Voir les détails » affichait un lien « WordPress.org Plugin Page » pointant vers une page inexistante, le plugin n'étant distribué que sur GitHub. WordPress fabrique ce lien à partir du slug tant que la réponse `plugins_api` ne se déclare pas `external` ; elle le fait désormais
+- **Fixed:** Le plugin annonçait deux versions de WordPress testées différentes selon le chemin de lecture — 6.7 dans le transient de mise à jour, la version du site elle-même dans le popup. Les deux utilisent maintenant la même constante, portée à 7.1 ; la seconde valeur revenait à se déclarer compatible avec n'importe quelle version, ce qui faisait signaler le plugin comme non maintenu
+- **Fixed:** Dans l'onglet Changelog, l'entrée d'une version non encore installée s'affichait en police plus petite et sans date, car elle était construite séparément du reste du changelog. Elle suit désormais le même format « version - date » que les entrées issues du README
+- **New:** Les versions non installées apparaissent dans un bloc distinct avec un badge, et la version installée est signalée par un badge « Installed »
+- **New:** Toutes les releases plus récentes que la version installée sont listées dans le changelog, et non plus seulement la dernière : un site en retard de plusieurs versions ne saute plus les entrées intermédiaires
+- **Improved:** Le corps des releases GitHub est normalisé avant affichage — titre de version en double retiré, lien « Full Changelog » raccourci, niveaux de titres alignés sur ceux du README
+- **Improved:** Une release déjà documentée dans le README n'est plus affichée deux fois
+- **Improved:** Les transients du système de mise à jour sont supprimés à la désinstallation du plugin
+
 ### 1.5.1 - 2026-09-01
 
 - **Fixed:** Filtre par circonscription et recherche renvoyaient « Erreur de chargement. » sur les sites protégés par un pare-feu applicatif (BulletProof Security, Wordfence, mod_security) : ces WAF renvoient un 403 dès qu'une apostrophe apparaît dans la query string, ce que déclenchent les noms français (« Circonscription d'inspection du 1er degré d'Auterive », commune « L'Union », département « Côte-d'Or »). La query string concernée est désormais transmise encodée en base64url et décodée côté serveur avant validation

@@ -35,6 +35,10 @@ delete_option('fsm_default_ep');
 delete_option('fsm_carto_api_key');
 delete_option('fsm_carto_style');
 
+// Remove the GitHub updater caches.
+delete_transient('fsm_github_release');
+delete_transient('fsm_github_releases');
+
 // Unschedule cron.
 $timestamp = wp_next_scheduled('fsm_monthly_sync');
 if ($timestamp) {

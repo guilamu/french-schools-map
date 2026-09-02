@@ -76,9 +76,13 @@ class FSM_GitHub_Updater
     /**
      * WordPress version tested up to.
      *
+     * Reported to WordPress and read by compatibility monitors, so it must be
+     * a deliberate statement of what was actually exercised — bump it as part
+     * of releasing, not automatically from the running site's version.
+     *
      * @var string
      */
-    private const TESTED_WP = '6.7';
+    private const TESTED_WP = '7.1';
 
     /**
      * Minimum PHP version required.
@@ -104,6 +108,20 @@ class FSM_GitHub_Updater
      * @var string
      */
     private const CACHE_KEY = 'fsm_github_release';
+
+    /**
+     * Cache key for the release list used to build the changelog.
+     *
+     * @var string
+     */
+    private const CACHE_KEY_RELEASES = 'fsm_github_releases';
+
+    /**
+     * How many releases to pull when listing them (GitHub caps this at 100).
+     *
+     * @var int
+     */
+    private const RELEASES_PER_PAGE = 30;
 
     /**
      * Cache expiration in seconds (12 hours default).
@@ -150,20 +168,15 @@ class FSM_GitHub_Updater
      */
 
     /**
-     * Get release data from GitHub with caching.
+     * Call a GitHub repository endpoint and decode the JSON response.
      *
-     * @return array|null Release data or null on failure.
+     * @param string $endpoint Path below /repos/{owner}/{repo}/, e.g. "releases/latest".
+     * @return array|null Decoded payload, or null on any failure.
      */
-    private static function get_release_data(): ?array
+    private static function request_github(string $endpoint): ?array
     {
-        $release_data = get_transient(self::CACHE_KEY);
-
-        if (false !== $release_data && is_array($release_data)) {
-            return $release_data;
-        }
-
         $response = wp_remote_get(
-            sprintf('https://api.github.com/repos/%s/%s/releases/latest', self::GITHUB_USER, self::GITHUB_REPO),
+            sprintf('https://api.github.com/repos/%s/%s/%s', self::GITHUB_USER, self::GITHUB_REPO, $endpoint),
             array(
                 'user-agent' => 'WordPress/' . self::PLUGIN_SLUG,
                 'timeout' => 15,
@@ -190,7 +203,25 @@ class FSM_GitHub_Updater
         }
 
         // Parse JSON response
-        $release_data = json_decode(wp_remote_retrieve_body($response), true);
+        $data = json_decode(wp_remote_retrieve_body($response), true);
+
+        return is_array($data) ? $data : null;
+    }
+
+    /**
+     * Get the latest release from GitHub with caching.
+     *
+     * @return array|null Release data or null on failure.
+     */
+    private static function get_release_data(): ?array
+    {
+        $release_data = get_transient(self::CACHE_KEY);
+
+        if (false !== $release_data && is_array($release_data)) {
+            return $release_data;
+        }
+
+        $release_data = self::request_github('releases/latest');
 
         if (empty($release_data['tag_name'])) {
             if (defined('WP_DEBUG') && WP_DEBUG) {
@@ -203,6 +234,75 @@ class FSM_GitHub_Updater
         set_transient(self::CACHE_KEY, $release_data, self::CACHE_EXPIRATION);
 
         return $release_data;
+    }
+
+    /**
+     * Get every published release newer than the installed version, newest first.
+     *
+     * The local README.md only documents versions up to the installed one, so a
+     * site several releases behind would otherwise show a gap: the latest
+     * release's notes, then nothing until the installed version. Listing the
+     * releases closes that gap.
+     *
+     * Only the three fields the changelog needs are cached; a release payload
+     * carries assets, uploader accounts and reactions that would bloat the
+     * transient for no benefit.
+     *
+     * @param string $installed_version Currently installed plugin version.
+     * @return array<int, array{tag_name: string, body: string, published_at: string}>
+     */
+    private static function get_newer_releases(string $installed_version): array
+    {
+        $releases = get_transient(self::CACHE_KEY_RELEASES);
+
+        if (false === $releases || !is_array($releases)) {
+            $payload = self::request_github('releases?per_page=' . self::RELEASES_PER_PAGE);
+
+            if (null === $payload) {
+                return array();
+            }
+
+            $releases = array();
+
+            foreach ($payload as $release) {
+                // Drafts and pre-releases are excluded, matching what
+                // /releases/latest reports as the installable version.
+                if (!is_array($release)
+                    || empty($release['tag_name'])
+                    || !empty($release['draft'])
+                    || !empty($release['prerelease'])
+                ) {
+                    continue;
+                }
+
+                $releases[] = array(
+                    'tag_name'     => $release['tag_name'],
+                    'body'         => $release['body'] ?? '',
+                    'published_at' => $release['published_at'] ?? '',
+                );
+            }
+
+            set_transient(self::CACHE_KEY_RELEASES, $releases, self::CACHE_EXPIRATION);
+        }
+
+        $newer = array();
+
+        foreach ($releases as $release) {
+            if (version_compare($installed_version, ltrim($release['tag_name'], 'v'), '<')) {
+                $newer[] = $release;
+            }
+        }
+
+        // GitHub orders by creation date; order by version instead so a
+        // back-ported tag cannot land above a higher version.
+        usort(
+            $newer,
+            static function ($a, $b) {
+                return version_compare(ltrim($b['tag_name'], 'v'), ltrim($a['tag_name'], 'v'));
+            }
+        );
+
+        return $newer;
     }
 
     /**
@@ -379,11 +479,15 @@ class FSM_GitHub_Updater
         $res->name         = self::PLUGIN_NAME;
         $res->slug         = self::PLUGIN_SLUG;
         $res->plugin       = self::PLUGIN_FILE; // CRITICAL for install status detection
+        // CRITICAL: marks the plugin as not hosted on WordPress.org, otherwise
+        // install_plugin_information() prints a "WordPress.org Plugin Page" link
+        // built from the slug — a 404 for a GitHub-only plugin.
+        $res->external     = true;
         $res->version      = $version;
         $res->author       = sprintf('<a href="https://github.com/%s">%s</a>', self::GITHUB_USER, self::GITHUB_USER);
         $res->homepage     = sprintf('https://github.com/%s/%s', self::GITHUB_USER, self::GITHUB_REPO);
         $res->requires     = self::REQUIRES_WP;
-        $res->tested       = get_bloginfo('version');
+        $res->tested       = self::TESTED_WP;
         $res->requires_php = self::REQUIRES_PHP;
 
         // Always non-empty: WordPress only renders the modal footer action
@@ -414,19 +518,27 @@ class FSM_GitHub_Updater
             $res->sections['faq'] = $readme['faq'];
         }
 
-        // When an update is available, the local README only contains the
-        // installed version's changelog.  Prepend the GitHub release body
-        // so the user sees what's new in the upcoming version.
+        // The local README only documents the installed version and older, so
+        // every newer release is prepended from its GitHub release notes.
         $changelog_html      = '';
         $installed_version   = $plugin_data['Version'] ?? '0.0.0';
 
-        if ($release_data && !empty($release_data['body']) && version_compare($installed_version, $version, '<')) {
-            $changelog_html .= '<h4>' . esc_html($version) . '</h4>'
-                             . self::markdown_to_html($release_data['body']);
+        foreach (self::get_newer_releases($installed_version) as $pending) {
+            $pending_version = ltrim($pending['tag_name'], 'v');
+
+            // A release with no notes has nothing to show, and one the README
+            // already documents would be listed twice.
+            if ('' === trim($pending['body'])
+                || self::changelog_has_version($readme['changelog'] ?? '', $pending_version)
+            ) {
+                continue;
+            }
+
+            $changelog_html .= self::render_pending_release($pending, $pending_version);
         }
 
         if (!empty($readme['changelog'])) {
-            $changelog_html .= $readme['changelog'];
+            $changelog_html .= self::mark_installed_version($readme['changelog'], $installed_version);
         }
 
         $res->sections['changelog'] = !empty($changelog_html)
@@ -438,6 +550,129 @@ class FSM_GitHub_Updater
             );
 
         return $res;
+    }
+
+    /**
+     * Tell whether the README changelog already documents a given version.
+     *
+     * Guards against printing the release twice when the changelog entry was
+     * committed to README.md before the matching GitHub release was tagged.
+     *
+     * @param string $changelog_html Changelog HTML built from README.md.
+     * @param string $version        Version to look for.
+     * @return bool
+     */
+    private static function changelog_has_version(string $changelog_html, string $version): bool
+    {
+        if ('' === $changelog_html || '' === $version) {
+            return false;
+        }
+
+        return 1 === preg_match(
+            '#<h[23]>\s*v?' . preg_quote($version, '#') . '\b#i',
+            $changelog_html
+        );
+    }
+
+    /**
+     * Render the changelog entry for a release that is not installed yet.
+     *
+     * The entry comes from the GitHub release body, whereas every other entry
+     * comes from the local README.md. Without normalisation the two sources do
+     * not match: the README uses "### x.y.z - YYYY-MM-DD" (rendered as <h3>)
+     * while a release body carries whatever heading levels its author typed,
+     * plus GitHub's auto-appended "Full Changelog" URL.
+     *
+     * @param array  $release_data Release payload from the GitHub API.
+     * @param string $version      Release version (tag without the leading "v").
+     * @return string HTML for the pending release entry.
+     */
+    private static function render_pending_release(array $release_data, string $version): string
+    {
+        $date = !empty($release_data['published_at'])
+            ? mysql2date('Y-m-d', $release_data['published_at'], false)
+            : '';
+
+        $title = '' !== $date ? $version . ' - ' . $date : $version;
+
+        // <div class> and <span class> survive the wp_kses() pass applied by
+        // install_plugin_information(); the styling comes from plugin_info_css().
+        return '<div class="fsm-release-pending">'
+            . '<h3>' . esc_html($title)
+            . ' <span class="fsm-release-badge">'
+            . esc_html__('Not installed yet', self::TEXT_DOMAIN)
+            . '</span></h3>'
+            . self::normalize_release_body($release_data['body'], $version)
+            . '</div>';
+    }
+
+    /**
+     * Clean up a GitHub release body so it renders like a README changelog entry.
+     *
+     * - drops a leading heading that only repeats the version, which is already
+     *   printed as the entry title;
+     * - rewrites GitHub's "Full Changelog: <url>" footer into a short link
+     *   instead of a full-width raw URL;
+     * - flattens every heading to <h4>, so that a release body written with
+     *   "##" does not render a heading larger than the entry title above it.
+     *
+     * @param string $body    Raw Markdown release body.
+     * @param string $version Release version, used to detect the duplicate title.
+     * @return string Sanitised HTML.
+     */
+    private static function normalize_release_body(string $body, string $version): string
+    {
+        $body = trim($body);
+
+        // Leading "# v1.5.1", "## 1.5.1 - 2026-09-01", "### Release 1.5.1"...
+        $body = preg_replace(
+            '/\A#{1,6}\s*(?:release\s+)?v?' . preg_quote($version, '/') . '\b[^\n]*\n+/i',
+            '',
+            $body,
+            1
+        );
+
+        // GitHub footer: **Full Changelog**: https://github.com/o/r/compare/v1.5.0...v1.5.1
+        $body = preg_replace_callback(
+            '#\*\*Full Changelog\*\*:\s*(\S+/compare/(\S+))#i',
+            static function ($m) {
+                return '**Full Changelog**: [' . $m[2] . '](' . $m[1] . ')';
+            },
+            $body
+        );
+
+        $html = self::markdown_to_html($body);
+
+        // Flatten headings to <h4> (see the method docblock).
+        $html = preg_replace('#<(/?)h[1-6]\b#i', '<$1h4', $html);
+
+        return $html;
+    }
+
+    /**
+     * Tag the installed version's heading in the README changelog.
+     *
+     * Gives the reader a reference point for how far behind their install is,
+     * which only matters once a newer release is listed above it.
+     *
+     * @param string $changelog_html Changelog HTML built from README.md.
+     * @param string $version        Currently installed version.
+     * @return string Changelog HTML with the installed entry tagged.
+     */
+    private static function mark_installed_version(string $changelog_html, string $version): string
+    {
+        if ('' === $version) {
+            return $changelog_html;
+        }
+
+        return preg_replace(
+            '#<h3>(\s*v?' . preg_quote($version, '#') . '\b[^<]*)</h3>#i',
+            '<h3>$1 <span class="fsm-release-badge fsm-release-badge-installed">'
+                . esc_html__('Installed', self::TEXT_DOMAIN)
+                . '</span></h3>',
+            $changelog_html,
+            1
+        );
     }
 
     /**
@@ -502,7 +737,32 @@ class FSM_GitHub_Updater
             // Section content fixes.
             . '#section-holder .section h2 { margin: 1.5em 0 0.5em; clear: none; }'
             . '#section-holder .section h3 { margin: 1.5em 0 0.5em; }'
+            . '#section-holder .section h4 { margin: 1.2em 0 0.4em; font-size: 13px; }'
             . '#section-holder .section > :first-child { margin-top: 0; }'
+            // Pending release: set apart from the entries already installed.
+            . '.fsm-release-pending {'
+            .   'margin: 0 0 1.6em;'
+            .   'padding: 2px 16px 10px;'
+            .   'border-left: 4px solid #2271b1;'
+            .   'background: #f0f6fc;'
+            .   'border-radius: 0 3px 3px 0;'
+            . '}'
+            . '.fsm-release-pending > h3:first-child { margin-top: 0.8em; }'
+            . '.fsm-release-badge {'
+            .   'display: inline-block;'
+            .   'vertical-align: middle;'
+            .   'margin-left: 8px;'
+            .   'padding: 1px 8px;'
+            .   'border-radius: 9px;'
+            .   'background: #2271b1;'
+            .   'color: #fff;'
+            .   'font-size: 11px;'
+            .   'font-weight: 600;'
+            .   'line-height: 1.7;'
+            .   'text-transform: uppercase;'
+            .   'letter-spacing: 0.02em;'
+            . '}'
+            . '.fsm-release-badge-installed { background: #dcdcde; color: #50575e; }'
             . '.md-table { display: table; width: 100%; border-collapse: collapse; margin: 1em 0; font-size: 13px; }'
             . '.md-tr { display: table-row; }'
             . '.md-tr > span { display: table-cell; padding: 6px 10px; border: 1px solid #ddd; vertical-align: top; }'

@@ -42,8 +42,32 @@ Ce plugin affiche une carte interactive des ~69 000 établissements scolaires fr
 1. Téléchargez le dossier `french-schools-map`
 2. Uploadez-le dans `/wp-content/plugins/`
 3. Activez le plugin via le menu **Extensions**
-4. Rendez-vous dans **Réglages → French Schools Map** pour lancer la première synchronisation
-5. Ajoutez le shortcode `[french_schools_map]` dans une page ou utilisez le bloc Gutenberg
+4. Créez un compte et une clé API sur data.education.gouv.fr (voir [Obtenir une clé API](#obtenir-une-clé-api) ci-dessous) — **obligatoire depuis novembre 2026**
+5. Rendez-vous dans **Réglages → French Schools Map**, collez la clé dans **Clé API data.education.gouv.fr** puis enregistrez
+6. Lancez la première synchronisation avec « Synchroniser maintenant »
+7. Ajoutez le shortcode `[french_schools_map]` dans une page ou utilisez le bloc Gutenberg
+
+## Obtenir une clé API
+
+Depuis novembre 2026, le portail [data.education.gouv.fr](https://data.education.gouv.fr/) n'est plus accessible anonymement : le site redirige vers une page de connexion et l'API répond `401 Unauthorized` aux requêtes sans clé. Sans clé, la synchronisation de l'annuaire échoue (la carte continue d'afficher les données déjà importées).
+
+Le compte et la clé sont gratuits.
+
+1. **Créer un compte** sur la plateforme Opendatasoft (Huwise), qui héberge le portail : [data.opendatasoft.com/signup](https://data.opendatasoft.com/signup/?flg=fr-fr). Renseignez votre nom, votre adresse e-mail et un mot de passe.
+2. **Confirmer l'adresse e-mail** via le lien reçu par mail.
+3. **Se connecter** sur [data.education.gouv.fr](https://data.education.gouv.fr/) avec ce compte (bouton de connexion en haut à droite).
+4. **Générer la clé** : cliquez sur vos initiales en haut à droite → **Préférences du compte** → onglet **Clés d'API** (lien direct : [data.education.gouv.fr/account/api-keys/](https://data.education.gouv.fr/account/api-keys/)), puis **Générer une nouvelle clé**. La permission « Parcourir tous les jeux de données » suffit : le plugin ne fait que lire l'annuaire.
+5. **Copier la clé** avec l'icône « Copier dans le presse-papier » et la coller dans **Réglages → French Schools Map → Clé API data.education.gouv.fr**. Une valeur qui ne ressemble pas à une clé (URL, texte avec espaces) est refusée à l'enregistrement.
+
+**Clé partagée** : la clé est enregistrée dans l'option WordPress `fr_education_api_key`, commune avec [Gravity Forms - French Schools](https://github.com/guilamu/gf-french-schools). Une clé saisie dans l'un des deux plugins est automatiquement utilisée par l'autre.
+
+**Alternative (wp-config.php)** : pour ne pas stocker la clé en base de données, définissez la constante commune aux deux plugins. Elle prend le pas sur le champ de réglage :
+
+```php
+define( 'FR_EDUCATION_API_KEY', 'votre-cle-api' );
+```
+
+La clé peut aussi être fournie par le filtre `fr_education_api_key`.
 
 ## FAQ
 
@@ -51,7 +75,7 @@ Ce plugin affiche une carte interactive des ~69 000 établissements scolaires fr
 Vérifiez que la synchronisation a bien été effectuée : allez dans **Réglages → French Schools Map** et cliquez sur "Synchroniser maintenant". La première synchronisation peut prendre quelques minutes.
 
 ### Le plugin nécessite-t-il une clé API ?
-Non par défaut : tuiles OpenStreetMap et API Open Data, toutes deux gratuites et sans clé. Une clé CARTO (gratuite, sur <https://carto.com/basemaps/apikey/>) n'est requise que pour les fonds Voyager, Positron ou Dark Matter, qui affichent sinon un filigrane « API KEY REQUIRED ».
+Oui, depuis novembre 2026 : la synchronisation des données exige une clé data.education.gouv.fr gratuite, voir [Obtenir une clé API](#obtenir-une-clé-api). Les tuiles OpenStreetMap restent sans clé. Une clé CARTO (gratuite, sur <https://carto.com/basemaps/apikey/>) n'est requise que pour les fonds Voyager, Positron ou Dark Matter, qui affichent sinon un filigrane « API KEY REQUIRED ».
 
 ### `departement` et `academie` sont-ils cumulables ?
 Non. Si les deux sont renseignés, `departement` est prioritaire. La valeur configurée dans les réglages globaux prend également le dessus sur les attributs du bloc Gutenberg pour éviter des affichages incohérents.
@@ -178,7 +202,7 @@ Le bloc **French Schools Map** est disponible dans l'éditeur. Les mêmes param�
 Les données proviennent du portail Open Data du Ministère de l'Éducation Nationale :
 
 - **Dataset** : [Annuaire de l'éducation](https://data.education.gouv.fr/explore/dataset/fr-en-annuaire-education/)
-- **API** : OpenDataSoft API v2.1
+- **API** : OpenDataSoft API v2.1 — clé API requise depuis novembre 2026 ([Obtenir une clé API](#obtenir-une-clé-api))
 - **Fréquence** : Synchronisation mensuelle automatique
 - **Contours communaux** : [geo.api.gouv.fr](https://geo.api.gouv.fr/) (pour les zones colorées par circonscription)
 
@@ -203,6 +227,7 @@ La page **Réglages → French Schools Map** permet de :
 - Voir le statut de la synchronisation (dernière date, nombre d'enregistrements)
 - Lancer une synchronisation manuelle
 - Définir le département ou l'académie affichés par défaut
+- Renseigner la clé API data.education.gouv.fr, partagée avec Gravity Forms - French Schools
 
 ## API REST
 
@@ -244,6 +269,16 @@ Le plugin gère ~69 000 points grâce à :
 - Les zones de circonscription pour les communes sans école sont approximées par la circonscription la plus proche géographiquement.
 
 ## Changelog
+
+### 1.6.0 - 2026-11-16
+
+- **Fixed:** La synchronisation échouait avec « Unauthorized » : data.education.gouv.fr n'accepte plus les requêtes anonymes (redirection vers la connexion, `401 Unauthorized` sur l'API)
+- **New:** Réglage **Clé API data.education.gouv.fr** dans **Réglages → French Schools Map**. La clé est envoyée dans l'en-tête `Authorization: Apikey …` du téléchargement de l'annuaire
+- **New:** Clé partagée avec Gravity Forms - French Schools via l'option `fr_education_api_key`, la constante `FR_EDUCATION_API_KEY` (wp-config.php) et le filtre `fr_education_api_key` : une clé saisie dans un plugin sert à l'autre
+- **New:** Une valeur qui ne ressemble pas à une clé (URL, texte avec espaces) est refusée à l'enregistrement
+- **Improved:** Message d'erreur explicite quand l'API répond 401/403 (clé absente ou refusée)
+- **Changed:** Le téléchargement de l'export CSV n'utilise plus `download_url()`, qui ne permet pas d'envoyer d'en-tête d'authentification
+- **Documentation:** Procédure de création de compte et de génération de la clé API
 
 ### 1.5.2 - 2026-09-02
 

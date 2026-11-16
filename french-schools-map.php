@@ -4,7 +4,7 @@
  * Plugin Name: French Schools Map
  * Plugin URI: https://github.com/guilamu/french-schools-map
  * Description: Carte interactive des établissements scolaires français basée sur OpenStreetMap et les données open data du Ministère de l'Éducation Nationale.
- * Version: 1.5.2
+ * Version: 1.6.0
  * Author: Guilamu
  * Author URI: https://github.com/guilamu
  * Text Domain: french-schools-map
@@ -20,10 +20,90 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('FSM_VERSION', '1.5.2');
+define('FSM_VERSION', '1.6.0');
 define('FSM_PLUGIN_FILE', __FILE__);
 define('FSM_PATH', plugin_dir_path(__FILE__));
 define('FSM_URL', plugin_dir_url(__FILE__));
+
+/**
+ * Option storing the data.education.gouv.fr API key.
+ *
+ * Shared with the other plugins that read the same portal (Gravity Forms -
+ * French Schools): a key saved in any of them is used by all. Do not rename.
+ */
+define('FSM_SHARED_API_KEY_OPTION', 'fr_education_api_key');
+
+/**
+ * Whether a string looks like an Opendatasoft API key.
+ *
+ * Catches paste mistakes (URL, text with spaces) before they reach the API.
+ *
+ * @param string $key Candidate key.
+ * @return bool
+ */
+function fsm_is_valid_api_key($key)
+{
+    return (bool) preg_match('/^[A-Za-z0-9_-]{16,128}$/', (string) $key);
+}
+
+/**
+ * Whether the key is forced by the FR_EDUCATION_API_KEY constant (wp-config.php).
+ *
+ * @return bool
+ */
+function fsm_api_key_from_constant()
+{
+    return defined('FR_EDUCATION_API_KEY') && FR_EDUCATION_API_KEY;
+}
+
+/**
+ * Read the key saved in the database (shared option).
+ *
+ * Falls back to the key saved by Gravity Forms - French Schools 1.11.0,
+ * which used its own option before the key became shared.
+ *
+ * @return string
+ */
+function fsm_get_saved_api_key()
+{
+    $key = trim((string) get_option(FSM_SHARED_API_KEY_OPTION, ''));
+    if ($key === '') {
+        $key = trim((string) get_option('gf_ecoles_fr_api_key', ''));
+    }
+    return $key;
+}
+
+/**
+ * Get the API key used to authenticate against data.education.gouv.fr.
+ *
+ * Priority: FR_EDUCATION_API_KEY constant, then the shared option saved from
+ * any plugin's settings. Values that do not look like a key are ignored.
+ * Filterable with `fr_education_api_key`.
+ *
+ * @return string API key, or empty string when none is configured.
+ */
+function fsm_get_api_key()
+{
+    $key = fsm_api_key_from_constant() ? (string) FR_EDUCATION_API_KEY : fsm_get_saved_api_key();
+    $key = trim((string) apply_filters('fr_education_api_key', trim($key)));
+
+    return fsm_is_valid_api_key($key) ? $key : '';
+}
+
+/**
+ * Build the HTTP headers for requests to data.education.gouv.fr.
+ *
+ * @param array $headers Extra headers to merge.
+ * @return array Headers including the Authorization header when a key is set.
+ */
+function fsm_api_headers($headers = array())
+{
+    $key = fsm_get_api_key();
+    if ($key !== '') {
+        $headers['Authorization'] = 'Apikey ' . $key;
+    }
+    return $headers;
+}
 
 // ─── Autoload includes ───────────────────────────────────────────────
 require_once FSM_PATH . 'includes/class-fsm-academies.php';

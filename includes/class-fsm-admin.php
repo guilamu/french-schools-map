@@ -134,7 +134,22 @@ class FSM_Admin
             update_option('fsm_carto_api_key',       trim($carto_key));
             update_option('fsm_carto_style',         $carto_style);
 
+            // data.education.gouv.fr API key, shared with the other plugins.
+            $edu_key_error = false;
+            if (isset($_POST['fsm_education_api_key']) && !fsm_api_key_from_constant()) {
+                $edu_key = trim(sanitize_text_field(wp_unslash($_POST['fsm_education_api_key'])));
+                if ($edu_key === '' || fsm_is_valid_api_key($edu_key)) {
+                    update_option(FSM_SHARED_API_KEY_OPTION, $edu_key, false);
+                    delete_option('gf_ecoles_fr_api_key');
+                } else {
+                    $edu_key_error = true;
+                }
+            }
+
             echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Settings saved.', 'french-schools-map') . '</p></div>';
+            if ($edu_key_error) {
+                echo '<div class="notice notice-error"><p>' . esc_html__('The data.education.gouv.fr API key was not saved: this does not look like an API key (letters and digits only, no URL or spaces). Copy the key from Account preferences → API keys on data.education.gouv.fr.', 'french-schools-map') . '</p></div>';
+            }
         }
 
         $status       = FSM_Local_DB::get_status();
@@ -146,6 +161,7 @@ class FSM_Admin
         $saved_ep     = get_option('fsm_default_ep',          'all');
         $carto_key    = get_option('fsm_carto_api_key', '');
         $carto_style  = get_option('fsm_carto_style',   'voyager');
+        $edu_key      = fsm_get_saved_api_key();
         $academies    = FSM_Academies::get_names();
         $departments  = FSM_Local_DB::has_data() ? FSM_Local_DB::get_departments() : array();
 ?>
@@ -308,6 +324,31 @@ class FSM_Admin
                 <form method="post">
                     <?php wp_nonce_field('fsm_settings_nonce'); ?>
                     <table class="form-table">
+                        <tr>
+                            <td colspan="2" style="padding-left:0;padding-top:0;padding-bottom:0;">
+                                <h3 style="margin:0;"><?php esc_html_e('School directory API key', 'french-schools-map'); ?></h3>
+                                <p class="description" style="font-weight:400;">
+                                    <?php esc_html_e('Required since November 2026: data.education.gouv.fr no longer answers anonymous requests, so the data sync fails without a key. Create a free account on the portal, then generate a key under Account preferences → API keys.', 'french-schools-map'); ?>
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="fsm_education_api_key"><?php esc_html_e('data.education.gouv.fr API key', 'french-schools-map'); ?></label></th>
+                            <td>
+                                <?php if (fsm_api_key_from_constant()) : ?>
+                                    <p><strong><?php esc_html_e('The FR_EDUCATION_API_KEY constant is defined in wp-config.php and is used instead of this field.', 'french-schools-map'); ?></strong></p>
+                                <?php else : ?>
+                                    <input type="password" name="fsm_education_api_key" id="fsm_education_api_key" class="regular-text code"
+                                        value="<?php echo esc_attr($edu_key); ?>" autocomplete="new-password" spellcheck="false">
+                                <?php endif; ?>
+                                <p class="description">
+                                    <a href="https://data.education.gouv.fr/account/api-keys/" target="_blank" rel="noopener noreferrer">
+                                        <?php esc_html_e('Manage your API keys', 'french-schools-map'); ?> &#8599;
+                                    </a>
+                                    &mdash; <?php esc_html_e('This key is shared with Gravity Forms - French Schools: saving it here also updates it there, and vice versa.', 'french-schools-map'); ?>
+                                </p>
+                            </td>
+                        </tr>
                         <tr>
                             <th><label for="fsm_default_academie"><?php esc_html_e('Default academy', 'french-schools-map'); ?></label></th>
                             <td>

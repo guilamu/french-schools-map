@@ -493,3 +493,43 @@ msgstr "Dark Matter (sombre)"
 
 msgid "Dark Matter without labels"
 msgstr "Dark Matter sans libellés"
+
+#: includes/class-fsm-local-db.php
+msgid "Could not create a temporary file."
+msgstr "Impossible de créer un fichier temporaire."
+
+#: includes/class-fsm-local-db.php
+msgid "The school directory requires a valid API key. Configure it in French Schools Map → Default settings."
+msgstr "L'annuaire scolaire exige une clé API valide. Configurez-la dans French Schools Map → Réglages par défaut."
+
+#: includes/class-fsm-local-db.php
+msgid "Download failed with HTTP status %d."
+msgstr "Le téléchargement a échoué avec le code HTTP %d."
+
+#: includes/class-fsm-admin.php
+msgid "The data.education.gouv.fr API key was not saved: this does not look like an API key (letters and digits only, no URL or spaces). Copy the key from Account preferences → API keys on data.education.gouv.fr."
+msgstr "La clé API data.education.gouv.fr n'a pas été enregistrée : ceci ne ressemble pas à une clé API (lettres et chiffres uniquement, sans URL ni espace). Copiez la clé depuis Préférences du compte → Clés d'API sur data.education.gouv.fr."
+
+#: includes/class-fsm-admin.php
+msgid "School directory API key"
+msgstr "Clé API de l'annuaire scolaire"
+
+#: includes/class-fsm-admin.php
+msgid "Required since November 2026: data.education.gouv.fr no longer answers anonymous requests, so the data sync fails without a key. Create a free account on the portal, then generate a key under Account preferences → API keys."
+msgstr "Obligatoire depuis novembre 2026 : data.education.gouv.fr ne répond plus aux requêtes anonymes, la synchronisation échoue donc sans clé. Créez un compte gratuit sur le portail, puis générez une clé dans Préférences du compte → Clés d'API."
+
+#: includes/class-fsm-admin.php
+msgid "data.education.gouv.fr API key"
+msgstr "Clé API data.education.gouv.fr"
+
+#: includes/class-fsm-admin.php
+msgid "The FR_EDUCATION_API_KEY constant is defined in wp-config.php and is used instead of this field."
+msgstr "La constante FR_EDUCATION_API_KEY est définie dans wp-config.php et est utilisée à la place de ce champ."
+
+#: includes/class-fsm-admin.php
+msgid "Manage your API keys"
+msgstr "Gérer vos clés API"
+
+#: includes/class-fsm-admin.php
+msgid "This key is shared with Gravity Forms - French Schools: saving it here also updates it there, and vice versa."
+msgstr "Cette clé est partagée avec Gravity Forms - French Schools : l'enregistrer ici la met aussi à jour là-bas, et inversement."

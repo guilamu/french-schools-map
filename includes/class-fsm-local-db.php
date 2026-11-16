@@ -99,6 +99,63 @@ class FSM_Local_DB
     // Sync / Import
     // ──────────────────────────────────────────────────────────────────
 
+    /**
+     * Download the CSV export to a temporary file, sending the API key.
+     *
+     * download_url() cannot send custom headers, so the request is streamed
+     * to a temp file manually.
+     *
+     * @return string|WP_Error Path to the temporary file, or error.
+     */
+    private static function download_export()
+    {
+        if (!function_exists('wp_tempnam')) {
+            require_once ABSPATH . 'wp-admin/includes/file.php';
+        }
+
+        $tmp_file = wp_tempnam('fsm-export.csv');
+        if (!$tmp_file) {
+            return new WP_Error('http_no_file', __('Could not create a temporary file.', 'french-schools-map'));
+        }
+
+        $response = wp_safe_remote_get(
+            self::EXPORT_URL,
+            array(
+                'timeout'  => 300,
+                'stream'   => true,
+                'filename' => $tmp_file,
+                'headers'  => function_exists('fsm_api_headers') ? fsm_api_headers() : array(),
+            )
+        );
+
+        if (is_wp_error($response)) {
+            @unlink($tmp_file);
+            return $response;
+        }
+
+        $status_code = (int) wp_remote_retrieve_response_code($response);
+        if ($status_code !== 200) {
+            @unlink($tmp_file);
+            if ($status_code === 401 || $status_code === 403) {
+                self::log('Export download refused (' . $status_code . ')' . (fsm_get_api_key() === '' ? ': no API key configured' : ': API key rejected'));
+                return new WP_Error(
+                    'api_auth_error',
+                    __('The school directory requires a valid API key. Configure it in French Schools Map → Default settings.', 'french-schools-map')
+                );
+            }
+            return new WP_Error(
+                'http_' . $status_code,
+                sprintf(
+                    /* translators: %d: HTTP status code */
+                    __('Download failed with HTTP status %d.', 'french-schools-map'),
+                    $status_code
+                )
+            );
+        }
+
+        return $tmp_file;
+    }
+
     public static function sync()
     {
         if (get_option(self::OPTION_STATUS) === 'running') {
@@ -121,7 +178,7 @@ class FSM_Local_DB
         self::create_table();
 
         // 1. Download CSV.
-        $tmp_file = download_url(self::EXPORT_URL, 300);
+        $tmp_file = self::download_export();
         if (is_wp_error($tmp_file)) {
             self::sync_failed($tmp_file->get_error_message());
             return $tmp_file;
